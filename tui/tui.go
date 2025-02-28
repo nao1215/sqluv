@@ -3,28 +3,43 @@ package tui
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/nao1215/sqluv/config"
+	"github.com/nao1215/sqluv/domain/model"
+	"github.com/nao1215/sqluv/usecase"
 	"github.com/rivo/tview"
 )
 
 // TUI represents a text-based user interface.
 type TUI struct {
-	// filePaths is a list of file paths that import to SQLite3 in-memory mode.
-	filePaths []string
+	// files is a list of file paths that import to SQLite3 in-memory mode.
+	files []*model.File
 
 	// app is the TUI application.
 	app *tview.Application
 	// root is the root component of the TUI.
 	root *home
+
+	// usecases is a set of usecases.
+	usecases *usecases
+}
+
+// home represents the home screen of the TUI.
+type usecases struct {
+	// fileReader is a usecase to read records from CSV/TSV/LTSV files and return them as model.Table.
+	fileReader usecase.FileReader
 }
 
 // NewTUI creates a new TUI instance.
 func NewTUI(
 	arg *config.Argument,
+	fileReader usecase.FileReader,
 ) *TUI {
 	tui := &TUI{
-		filePaths: arg.FilePaths(),
-		root:      newHome(),
-		app:       tview.NewApplication(),
+		files: arg.Files(),
+		root:  newHome(),
+		app:   tview.NewApplication(),
+		usecases: &usecases{
+			fileReader: fileReader,
+		},
 	}
 	tui.app.SetInputCapture(tui.keyBindings)
 	tui.app.SetMouseCapture(tui.mouseHandler)

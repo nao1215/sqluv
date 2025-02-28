@@ -6,6 +6,8 @@ coverage:
     - "**/main.go"
     - "**/di/*.go"
     - "**/tui/*.go"
+    - "**/interactor/mock/*.go"
+    - "**/infrastructure/mock/*.go"
 diff:
   datastores:
     - artifact://${GITHUB_REPOSITORY}

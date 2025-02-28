@@ -8,6 +8,8 @@ package di
 
 import (
 	"github.com/nao1215/sqluv/config"
+	"github.com/nao1215/sqluv/infrastructure/persistence"
+	"github.com/nao1215/sqluv/interactor"
 	"github.com/nao1215/sqluv/tui"
 )
 
@@ -15,6 +17,10 @@ import (
 
 // New creates a new sqluv command instance.
 func NewSqluv(arg *config.Argument) (*tui.TUI, error) {
-	tuiTUI := tui.NewTUI(arg)
+	csvReader := persistence.NewCSVReader()
+	tsvReader := persistence.NewTSVReader()
+	ltsvReader := persistence.NewLTSVReader()
+	fileReader := interactor.NewFileReader(csvReader, tsvReader, ltsvReader)
+	tuiTUI := tui.NewTUI(arg, fileReader)
 	return tuiTUI, nil
 }

@@ -1,0 +1,85 @@
+version: 3
+workdir: .
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*\/test\/.*$"
+  - "^.*\/main.go$"
+
+vendors:
+  color: { in: github.com/fatih/color } 
+  pflag: { in: github.com/spf13/pflag }
+  sqlite: { in: modernc.org/sqlite }
+  wire: { in: [github.com/google/wire, github.com/google/wire/cmd/wire] }
+  gomock: { in: go.uber.org/mock/gomock }
+  tcell: { in: github.com/gdamore/tcell/v2 }
+  tview: { in: github.com/rivo/tview }
+
+components:
+  tui: { in: tui }
+  domain: { in: domain }
+  model: { in: domain/model }
+  repository: { in: domain/repository }
+  infrastructure: { in: [infrastructure, infrastructure/mock/**] }
+  memory: { in: infrastructure/memory }
+  persistence: { in: infrastructure/persistence }
+  usecase: { in: usecase }
+  interactor: { in: interactor/** }
+  config: { in: config }
+  di: { in: di }
+
+commonVendors:
+  - wire
+  - gomock
+
+commonComponents:
+  - model
+  - config
+
+deps:
+  tui:
+    canUse:
+      - tcell
+      - tview
+  di:
+    mayDependOn:
+      - tui
+      - model
+      - usecase
+      - interactor
+      - repository
+      - config
+      - infrastructure
+      - memory
+  config:
+    canUse:
+      - pflag
+      - wire
+  model:
+    mayDependOn:
+      - domain
+  usecase:
+    mayDependOn:
+      - model
+      - repository
+  interactor:
+    mayDependOn:
+      - model
+      - usecase
+      - repository
+  repository:
+    mayDependOn:
+      - model
+  infrastructure:
+    mayDependOn:
+      - model
+  memory:
+    mayDependOn:
+      - model
+      - repository
+      - infrastructure
+  persistence:
+    mayDependOn:
+      - model
+      - repository
+      - infrastructure

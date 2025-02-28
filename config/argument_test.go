@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nao1215/sqluv/domain/model"
 )
 
 func TestNewArgument(t *testing.T) {
@@ -121,32 +122,38 @@ func TestArgumentUsage(t *testing.T) {
 	})
 }
 
-func TestArgumentFilePaths(t *testing.T) {
+func TestArgumentFiles(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		filePaths []string
-		usage     *usage
-		version   *version
+		files   []*model.File
+		usage   *usage
+		version *version
 	}
 	tests := []struct {
 		name   string
 		fields fields
-		want   []string
+		want   []*model.File
 	}{
 		{
 			name: "If user set file paths, return file paths",
 			fields: fields{
-				filePaths: []string{"users.csv", "users.tsv"},
+				files: []*model.File{
+					model.NewFile("users.csv"),
+					model.NewFile("users.tsv"),
+				},
 			},
-			want: []string{"users.csv", "users.tsv"},
+			want: []*model.File{
+				model.NewFile("users.csv"),
+				model.NewFile("users.tsv"),
+			},
 		},
 		{
 			name: "If user does not set file paths, return empty slice",
 			fields: fields{
-				filePaths: []string{},
+				files: []*model.File{},
 			},
-			want: []string{},
+			want: []*model.File{},
 		},
 	}
 	for _, tt := range tests {
@@ -154,11 +161,11 @@ func TestArgumentFilePaths(t *testing.T) {
 			t.Parallel()
 
 			a := &Argument{
-				filePaths: tt.fields.filePaths,
-				usage:     tt.fields.usage,
-				version:   tt.fields.version,
+				files:   tt.fields.files,
+				usage:   tt.fields.usage,
+				version: tt.fields.version,
 			}
-			if got := a.FilePaths(); !reflect.DeepEqual(got, tt.want) {
+			if got := a.Files(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Argument.FilePaths() = %v, want %v", got, tt.want)
 			}
 		})
