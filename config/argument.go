@@ -3,7 +3,6 @@
 package config
 
 import (
-	"errors"
 	"runtime/debug"
 
 	"github.com/spf13/pflag"
@@ -16,8 +15,8 @@ var (
 
 // Argument represents a runtime argument.
 type Argument struct {
-	// targetSQL is a target SQL query.
-	targetSQL *targetSQL
+	// filePaths is CSV/TSV/LTSV file path list that import to SQLite3 in-memory mode.
+	filePaths []string
 	// usage represents a usage flag.
 	usage *usage
 	// version represents a version flag.
@@ -30,32 +29,22 @@ func NewArgument(args []string) (*Argument, error) {
 	helpFlag := false
 	versionFlag := false
 
-	query := flag.StringP("sql", "s", "", "sql query you want to run")
 	flag.BoolVarP(&helpFlag, "help", "h", false, "print help message")
 	flag.BoolVarP(&versionFlag, "version", "v", false, "print sqluv version")
 	if err := flag.Parse(args[1:]); err != nil {
 		return nil, err
 	}
-	filePaths := flag.Args()
-
-	targetSQL, err := newTargetSQL(*query, filePaths)
-	if err != nil {
-		return nil, err
-	}
 
 	return &Argument{
-		targetSQL: targetSQL,
+		filePaths: flag.Args(),
 		usage:     newUsage(helpFlag, flag),
 		version:   newVersion(versionFlag),
 	}, nil
 }
 
-// IsTUI returns true if sqluv command runs TUI mode.
-func (a *Argument) IsTUI() bool {
-	if a.CanUsage() || a.CanVersion() {
-		return false
-	}
-	return !a.targetSQL.hasQuery()
+// FilePaths returns CSV/TSV/LTSV file path list.
+func (a *Argument) FilePaths() []string {
+	return a.filePaths
 }
 
 // CanUsage returns true if sqluv command can show usage message.
@@ -78,34 +67,6 @@ func (a *Argument) Usage() string {
 	return a.usage.String()
 }
 
-// targetSQL represents a target SQL query.
-// If user does not specify --sql option, sqluv command run TUI mode.
-type targetSQL struct {
-	// query is SQL query (for --sql option)
-	query string
-	// filePaths is a file path list that executes SQL query.
-	// The expected file format is csv, tsv, or ltsv.
-	filePaths []string
-}
-
-// newTargetSQL creates a new targetSQL.
-// If user set --sql option, you must set file path.
-// If user set file path but not set --sql option, sqluv command run TUI mode.
-func newTargetSQL(query string, filePaths []string) (*targetSQL, error) {
-	if query != "" && len(filePaths) == 0 {
-		return nil, errors.New("if you set --sql option, you must set file path")
-	}
-	return &targetSQL{
-		query:     query,
-		filePaths: filePaths,
-	}, nil
-}
-
-// hasQuery returns true if targetSQL has a query.
-func (t *targetSQL) hasQuery() bool {
-	return t.query != ""
-}
-
 // usage represents a usage flag
 type usage struct {
 	// on is a flag to show usage message.
@@ -120,12 +81,6 @@ func newUsage(on bool, flag pflag.FlagSet) *usage {
 	
 [Usage]
   sqluv [OPTIONS] [FILE_PATHS]
-
-[Example]
-  - Execute query for csv file.
-    sqluv --sql 'SELECT * FROM sample' ./path/to/sample.csv
-  - Run TUI mode.
-    sqluv
 
 [OPTIONS]
 `

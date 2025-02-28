@@ -28,7 +28,7 @@ test: ## Start test
 	env GOOS=$(GOOS) $(GO_TEST) -cover $(GO_PKGROOT) -coverpkg=./... -coverprofile=cover.out
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
-generate: ## Generate code from templates
+gen: ## Generate code from templates
 	$(GO) generate ./...
 
 tools: ## Install dependency tools 

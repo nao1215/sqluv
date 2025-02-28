@@ -3,79 +3,11 @@
 package config
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
-
-func TestArgumentIsTUI(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		arg  []string
-		want bool
-	}{
-		{
-			name: "If user set no argument, sqluv command is tui mode",
-			arg:  []string{"sqluv"},
-			want: true,
-		},
-		{
-			name: "If user set --sql option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "--sql", "select * from users", "path/to/file.csv"},
-			want: false,
-		},
-		{
-			name: "If user set -s option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "-s", "select * from users", "path/to/file.csv"},
-			want: false,
-		},
-		{
-			name: "If user set --help option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "--help"},
-			want: false,
-		},
-		{
-			name: "If user set -h option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "-h"},
-			want: false,
-		},
-		{
-			name: "If user set --version option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "--version"},
-			want: false,
-		},
-		{
-			name: "If user set -v option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "-v"},
-			want: false,
-		},
-		{
-			name: "If user set --help and --version option, sqluv command is not tui mode",
-			arg:  []string{"sqluv", "--help", "--version"},
-			want: false,
-		},
-		{
-			name: "If user set only file path, sqluv command is tui mode",
-			arg:  []string{"sqluv", "path/to/file.csv"},
-			want: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			a, err := NewArgument(tt.arg)
-			if err != nil {
-				t.Fatalf("NewArgument() = %v, want nil", err)
-			}
-			if tt.want != a.IsTUI() {
-				t.Errorf("IsTUI() = %v, want %v", a.IsTUI(), tt.want)
-			}
-		})
-	}
-}
 
 func TestNewArgument(t *testing.T) {
 	t.Parallel()
@@ -168,16 +100,9 @@ func TestArgumentUsage(t *testing.T) {
 [Usage]
   sqluv [OPTIONS] [FILE_PATHS]
 
-[Example]
-  - Execute query for csv file.
-    sqluv --sql 'SELECT * FROM sample' ./path/to/sample.csv
-  - Run TUI mode.
-    sqluv
-
 [OPTIONS]
-  -s, --sql string   sql query you want to run
-  -h, --help         print help message
-  -v, --version      print sqluv version
+  -h, --help      print help message
+  -v, --version   print sqluv version
 
 [LICENSE]
   MIT LICENSE - Copyright (c) 2025 CHIKAMATSU Naohiro
@@ -194,4 +119,48 @@ func TestArgumentUsage(t *testing.T) {
 			t.Errorf("Usage() mismatch (-want +got):\n%s", diff)
 		}
 	})
+}
+
+func TestArgumentFilePaths(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		filePaths []string
+		usage     *usage
+		version   *version
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   []string
+	}{
+		{
+			name: "If user set file paths, return file paths",
+			fields: fields{
+				filePaths: []string{"users.csv", "users.tsv"},
+			},
+			want: []string{"users.csv", "users.tsv"},
+		},
+		{
+			name: "If user does not set file paths, return empty slice",
+			fields: fields{
+				filePaths: []string{},
+			},
+			want: []string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			a := &Argument{
+				filePaths: tt.fields.filePaths,
+				usage:     tt.fields.usage,
+				version:   tt.fields.version,
+			}
+			if got := a.FilePaths(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Argument.FilePaths() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
