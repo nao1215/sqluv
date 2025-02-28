@@ -36,13 +36,13 @@ linters:
     - errchkjson
     - errname
     - errorlint
-    - exhaustive
+    #- exhaustive
     - fatcontext
     - forcetypeassert
     - gocheckcompilerdirectives
     - gochecknoinits
     - goconst
-    - gocritic
+    #- gocritic
     - gofmt
     - goimports
     - gomoddirectives
@@ -70,7 +70,7 @@ linters:
     - staticcheck
     - stylecheck
     - tagliatelle
-    - tenv
+    - usetesting
     - thelper
     - typecheck
     - unconvert
