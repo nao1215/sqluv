@@ -7,6 +7,8 @@ package di
 import (
 	"github.com/google/wire"
 	"github.com/nao1215/sqluv/config"
+	"github.com/nao1215/sqluv/infrastructure/persistence"
+	"github.com/nao1215/sqluv/interactor"
 	"github.com/nao1215/sqluv/tui"
 )
 
@@ -16,6 +18,8 @@ import (
 func NewSqluv(arg *config.Argument) (*tui.TUI, error) {
 	wire.Build(
 		tui.Set,
+		interactor.Set,
+		persistence.Set,
 	)
 	return nil, nil
 }

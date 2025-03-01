@@ -3,8 +3,7 @@
 package config
 
 import (
-	"runtime/debug"
-
+	"github.com/nao1215/sqluv/domain/model"
 	"github.com/spf13/pflag"
 )
 
@@ -15,8 +14,8 @@ var (
 
 // Argument represents a runtime argument.
 type Argument struct {
-	// filePaths is CSV/TSV/LTSV file path list that import to SQLite3 in-memory mode.
-	filePaths []string
+	// files is CSV/TSV/LTSV file path list that import to SQLite3 in-memory mode.
+	files []*model.File
 	// usage represents a usage flag.
 	usage *usage
 	// version represents a version flag.
@@ -36,15 +35,21 @@ func NewArgument(args []string) (*Argument, error) {
 	}
 
 	return &Argument{
-		filePaths: flag.Args(),
-		usage:     newUsage(helpFlag, flag),
-		version:   newVersion(versionFlag),
+		files: func() []*model.File {
+			files := make([]*model.File, 0, len(flag.Args()))
+			for _, filePath := range flag.Args() {
+				files = append(files, model.NewFile(filePath))
+			}
+			return files
+		}(),
+		usage:   newUsage(helpFlag, flag),
+		version: newVersion(versionFlag),
 	}, nil
 }
 
-// FilePaths returns CSV/TSV/LTSV file path list.
-func (a *Argument) FilePaths() []string {
-	return a.filePaths
+// Files returns CSV/TSV/LTSV file path list.
+func (a *Argument) Files() []*model.File {
+	return a.files
 }
 
 // CanUsage returns true if sqluv command can show usage message.
@@ -130,12 +135,7 @@ func newVersion(on bool) *version {
 			if Version != "" {
 				return commandName + " " + Version
 			}
-			if buildInfo, ok := debug.ReadBuildInfo(); ok {
-				if buildInfo.Main.Version != "" {
-					return commandName + " " + buildInfo.Main.Version
-				}
-			}
-			return commandName + "(devel)"
+			return commandName + " (devel)"
 		}(),
 	}
 }
