@@ -2,6 +2,7 @@ package tui
 
 import (
 	"github.com/gdamore/tcell/v2"
+	"github.com/nao1215/sqluv/domain/model"
 	"github.com/rivo/tview"
 )
 
@@ -9,7 +10,7 @@ import (
 // At the top of each tree, the database name or the fixed string "local" is displayed.
 // The trees show tables associated with the database or files read from the local system.
 type sidebar struct {
-	tree *tview.TreeView
+	*tview.TreeView
 }
 
 // newSidebar creates a new sidebar.
@@ -27,15 +28,40 @@ func newSidebar() *sidebar {
 	tree.SetRoot(rootNode)
 	tree.SetCurrentNode(rootNode)
 
-	add := func(_ *tview.TreeNode, _ string) {
-		// Do nothing.
+	return &sidebar{
+		TreeView: tree,
+	}
+}
+
+// Add this method to your sidebar struct
+func (s *sidebar) addLocalFiles(files []*model.File) {
+	// Find or create the "local" root node
+	root := s.GetRoot()
+	var localNode *tview.TreeNode
+
+	// Look for existing local node
+	for _, child := range root.GetChildren() {
+		if child.GetText() == "local" {
+			localNode = child
+			break
+		}
 	}
 
-	tree.SetSelectedFunc(func(node *tview.TreeNode) {
-		add(node, "path")
-	})
+	// If local node doesn't exist, create it
+	if localNode == nil {
+		localNode = tview.NewTreeNode("local").
+			SetSelectable(true).
+			SetExpanded(true)
+		root.AddChild(localNode)
+	} else {
+		localNode.ClearChildren()
+	}
 
-	return &sidebar{
-		tree: tree,
+	for _, file := range files {
+		name := file.NameWithoutExt()
+		fileNode := tview.NewTreeNode(name).
+			SetSelectable(true).
+			SetReference(file) // Store the file reference for later use
+		localNode.AddChild(fileNode)
 	}
 }

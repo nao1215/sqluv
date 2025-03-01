@@ -34,7 +34,10 @@ func TestFileReaderRead(t *testing.T) {
 		)
 
 		fileReader := NewFileReader(csvReader, nil, nil)
-		file := model.NewFile(filepath.Join("testdata", "test.csv"))
+		file, err := model.NewFile(filepath.Join("testdata", "test.csv"))
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		got, err := fileReader.Read(file)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -72,7 +75,10 @@ func TestFileReaderRead(t *testing.T) {
 		)
 
 		fileReader := NewFileReader(nil, tsvReader, nil)
-		file := model.NewFile(filepath.Join("testdata", "test.tsv"))
+		file, err := model.NewFile(filepath.Join("testdata", "test.tsv"))
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		got, err := fileReader.Read(file)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -110,7 +116,10 @@ func TestFileReaderRead(t *testing.T) {
 		)
 
 		fileReader := NewFileReader(nil, nil, ltsvReader)
-		file := model.NewFile(filepath.Join("testdata", "test.ltsv"))
+		file, err := model.NewFile(filepath.Join("testdata", "test.ltsv"))
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		got, err := fileReader.Read(file)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -133,7 +142,10 @@ func TestFileReaderRead(t *testing.T) {
 		t.Parallel()
 
 		fileReader := NewFileReader(nil, nil, nil)
-		file := model.NewFile(filepath.Join("testdata", "test.txt"))
+		file, err := model.NewFile(filepath.Join("testdata", "test.txt"))
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		if _, err := fileReader.Read(file); !errors.Is(err, usecase.ErrNotSupportedFileFormat) {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -143,7 +155,10 @@ func TestFileReaderRead(t *testing.T) {
 		t.Parallel()
 
 		fileReader := NewFileReader(nil, nil, nil)
-		file := model.NewFile("notfound")
+		file, err := model.NewFile("notfound")
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		if _, err := fileReader.Read(file); err == nil {
 			t.Error("expected error, but got nil")
 		}

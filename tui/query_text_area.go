@@ -4,7 +4,7 @@ import "github.com/rivo/tview"
 
 // queryTextArea represents a query input field.
 type queryTextArea struct {
-	textArea *tview.TextArea
+	*tview.TextArea
 }
 
 // newQueryTextArea creates a new query input field.
@@ -16,6 +16,6 @@ func newQueryTextArea() *queryTextArea {
 		SetTitleAlign(tview.AlignLeft)
 
 	return &queryTextArea{
-		textArea: textArea,
+		TextArea: textArea,
 	}
 }

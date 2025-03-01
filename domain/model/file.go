@@ -1,7 +1,9 @@
 package model
 
 import (
+	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -14,10 +16,13 @@ type File struct {
 // NewFile create new File.
 func NewFile(
 	path string,
-) *File {
+) (*File, error) {
+	if path == "" {
+		return nil, errors.New("file path is empty")
+	}
 	return &File{
 		path: path,
-	}
+	}, nil
 }
 
 // IsCSV return true if file is csv.
@@ -38,4 +43,19 @@ func (f *File) IsLTSV() bool {
 // Open open file.
 func (f *File) Open() (*os.File, error) {
 	return os.Open(f.path)
+}
+
+// NameWithoutExt return file name without extension.
+func (f *File) NameWithoutExt() string {
+	filename := filepath.Base(f.path)
+	ext := filepath.Ext(filename)
+
+	// Handle hidden files (starting with a dot)
+	if strings.HasPrefix(filename, ".") {
+		// If the filename is just a dot (like ".gitignore"), keep it as is
+		if filename == ext {
+			return filename
+		}
+	}
+	return strings.TrimSuffix(filename, ext)
 }

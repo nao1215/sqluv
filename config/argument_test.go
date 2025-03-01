@@ -139,13 +139,25 @@ func TestArgumentFiles(t *testing.T) {
 			name: "If user set file paths, return file paths",
 			fields: fields{
 				files: []*model.File{
-					model.NewFile("users.csv"),
-					model.NewFile("users.tsv"),
+					func() *model.File {
+						f, _ := model.NewFile("users.csv") //nolint:errcheck // not occur error
+						return f
+					}(),
+					func() *model.File {
+						f, _ := model.NewFile("users.tsv") //nolint:errcheck // not occur error
+						return f
+					}(),
 				},
 			},
 			want: []*model.File{
-				model.NewFile("users.csv"),
-				model.NewFile("users.tsv"),
+				func() *model.File {
+					f, _ := model.NewFile("users.csv") //nolint:errcheck // not occur error
+					return f
+				}(),
+				func() *model.File {
+					f, _ := model.NewFile("users.tsv") //nolint:errcheck // not occur error
+					return f
+				}(),
 			},
 		},
 		{
