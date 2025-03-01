@@ -34,14 +34,17 @@ func NewArgument(args []string) (*Argument, error) {
 		return nil, err
 	}
 
+	files := make([]*model.File, 0, len(flag.Args()))
+	for _, filePath := range flag.Args() {
+		f, err := model.NewFile(filePath)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
+
 	return &Argument{
-		files: func() []*model.File {
-			files := make([]*model.File, 0, len(flag.Args()))
-			for _, filePath := range flag.Args() {
-				files = append(files, model.NewFile(filePath))
-			}
-			return files
-		}(),
+		files:   files,
 		usage:   newUsage(helpFlag, flag),
 		version: newVersion(versionFlag),
 	}, nil

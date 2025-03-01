@@ -14,10 +14,23 @@ func TestNewFile(t *testing.T) {
 		t.Parallel()
 
 		path := "path/to/file"
-		f := NewFile(path)
+		f, err := NewFile(path)
+		if err != nil {
+			t.Errorf("error should be nil. got: %v", err)
+		}
 
 		if f.path != path {
 			t.Errorf("path is wrong. got: %s, want: %s", f.path, path)
+		}
+	})
+
+	t.Run("fail to create File", func(t *testing.T) {
+		t.Parallel()
+
+		path := ""
+		_, err := NewFile(path)
+		if err == nil {
+			t.Error("error should not be nil")
 		}
 	})
 }
@@ -136,7 +149,10 @@ func TestFileOpen(t *testing.T) {
 	t.Run("success to open file", func(t *testing.T) {
 		t.Parallel()
 
-		f := NewFile(filepath.Join("testdata", "sample.txt"))
+		f, err := NewFile(filepath.Join("testdata", "sample.txt"))
+		if err != nil {
+			t.Errorf("error should be nil. got: %v", err)
+		}
 		file, err := f.Open()
 		if err != nil {
 			t.Errorf("error should be nil. got: %v", err)
@@ -161,10 +177,73 @@ func TestFileOpen(t *testing.T) {
 	t.Run("fail to open file", func(t *testing.T) {
 		t.Parallel()
 
-		f := NewFile("notfound.txt")
-		_, err := f.Open()
+		f, err := NewFile("notfound.txt")
+		if err != nil {
+			t.Errorf("error should be nil. got: %v", err)
+		}
+		_, err = f.Open()
 		if err == nil {
 			t.Error("error should not be nil")
 		}
 	})
+}
+
+func TestFileNameWithoutExt(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		path string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "file with extension",
+			fields: fields{
+				path: "test.csv",
+			},
+			want: "test",
+		},
+		{
+			name: "file without extension",
+			fields: fields{
+				path: "test",
+			},
+			want: "test",
+		},
+		{
+			name: "file with multiple dots",
+			fields: fields{
+				path: "test.data.csv",
+			},
+			want: "test.data",
+		},
+		{
+			name: "hidden file",
+			fields: fields{
+				path: ".test",
+			},
+			want: ".test",
+		},
+		{
+			name: "file with path",
+			fields: fields{
+				path: "/path/to/test.csv",
+			},
+			want: "test",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &File{
+				path: tt.fields.path,
+			}
+			if got := f.NameWithoutExt(); got != tt.want {
+				t.Errorf("File.NameWithoutExt() = %v, want %v: %s", got, tt.want, tt.name)
+			}
+		})
+	}
 }

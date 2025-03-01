@@ -41,6 +41,8 @@ deps:
     canUse:
       - tcell
       - tview
+    mayDependOn:
+      - usecase
   di:
     mayDependOn:
       - tui
@@ -49,8 +51,9 @@ deps:
       - interactor
       - repository
       - config
-      - infrastructure
+      - persistence
       - memory
+      - infrastructure
   config:
     canUse:
       - pflag
