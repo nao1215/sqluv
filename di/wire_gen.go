@@ -8,6 +8,7 @@ package di
 
 import (
 	"github.com/nao1215/sqluv/config"
+	"github.com/nao1215/sqluv/infrastructure/memory"
 	"github.com/nao1215/sqluv/infrastructure/persistence"
 	"github.com/nao1215/sqluv/interactor"
 	"github.com/nao1215/sqluv/tui"
@@ -16,11 +17,24 @@ import (
 // Injectors from wire.go:
 
 // New creates a new sqluv command instance.
-func NewSqluv(arg *config.Argument) (*tui.TUI, error) {
+func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
 	csvReader := persistence.NewCSVReader()
 	tsvReader := persistence.NewTSVReader()
 	ltsvReader := persistence.NewLTSVReader()
 	fileReader := interactor.NewFileReader(csvReader, tsvReader, ltsvReader)
-	tuiTUI := tui.NewTUI(arg, fileReader)
-	return tuiTUI, nil
+	memoryDB, cleanup, err := config.NewMemoryDB()
+	if err != nil {
+		return nil, nil, err
+	}
+	tableCreator := memory.NewTableCreator(memoryDB)
+	usecaseTableCreator := interactor.NewTableCreator(tableCreator)
+	queryExecutor := memory.NewQueryExecutor(memoryDB)
+	statementExecutor := memory.NewStatementExecutor(memoryDB)
+	sqlExecutor := interactor.NewSQLExecutor(queryExecutor, statementExecutor)
+	recordsInserter := memory.NewRecordInserter(memoryDB)
+	usecaseRecordsInserter := interactor.NewRecordsInserter(recordsInserter)
+	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, sqlExecutor, usecaseRecordsInserter)
+	return tuiTUI, func() {
+		cleanup()
+	}, nil
 }

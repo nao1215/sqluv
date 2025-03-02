@@ -30,19 +30,13 @@ func NewFileReader(
 
 // Read read records from CSV/TSV/LTSV files and return them as model.Table.
 func (r *fileReader) Read(file *model.File) (*model.Table, error) {
-	f, err := file.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
 	switch {
 	case file.IsCSV():
-		return r.CSVReader.ReadCSV(f)
+		return r.CSVReader.ReadCSV(file)
 	case file.IsTSV():
-		return r.TSVReader.ReadTSV(f)
+		return r.TSVReader.ReadTSV(file)
 	case file.IsLTSV():
-		return r.LTSVReader.ReadLTSV(f)
+		return r.LTSVReader.ReadLTSV(file)
 	default:
 		return nil, usecase.ErrNotSupportedFileFormat
 	}

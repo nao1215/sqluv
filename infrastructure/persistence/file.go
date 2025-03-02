@@ -3,7 +3,6 @@ package persistence
 import (
 	"encoding/csv"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -23,9 +22,14 @@ func NewCSVReader() repository.CSVReader {
 }
 
 // ReadCSV read records from CSV files and return them as model.CSV.
-func (c *csvReader) ReadCSV(f *os.File) (*model.Table, error) {
-	r := csv.NewReader(f)
+func (c *csvReader) ReadCSV(file *model.File) (*model.Table, error) {
+	f, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
 
+	r := csv.NewReader(f)
 	header := model.Header{}
 	records := []model.Record{}
 	for {
@@ -41,7 +45,7 @@ func (c *csvReader) ReadCSV(f *os.File) (*model.Table, error) {
 		}
 		records = append(records, model.NewRecord(row))
 	}
-	return model.NewTable(filepath.Base(f.Name()), model.NewHeader(header), records), nil
+	return model.NewTable(filepath.Base(file.NameWithoutExt()), model.NewHeader(header), records), nil
 }
 
 // _ interface implementation check
@@ -55,7 +59,13 @@ func NewTSVReader() repository.TSVReader {
 }
 
 // ReadTSV read records from TSV files and return them as model.TSV.
-func (t *tsvReader) ReadTSV(f *os.File) (*model.Table, error) {
+func (t *tsvReader) ReadTSV(file *model.File) (*model.Table, error) {
+	f, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
 	r := csv.NewReader(f)
 	r.Comma = '\t'
 
@@ -74,7 +84,7 @@ func (t *tsvReader) ReadTSV(f *os.File) (*model.Table, error) {
 		}
 		records = append(records, model.NewRecord(row))
 	}
-	return model.NewTable(filepath.Base(f.Name()), model.NewHeader(header), records), nil
+	return model.NewTable(filepath.Base(file.NameWithoutExt()), model.NewHeader(header), records), nil
 }
 
 // _ interface implementation check
@@ -88,7 +98,13 @@ func NewLTSVReader() repository.LTSVReader {
 }
 
 // ReadLTSV read records from LTSV files and return them as model.LTSV.
-func (l *ltsvReader) ReadLTSV(f *os.File) (*model.Table, error) {
+func (l *ltsvReader) ReadLTSV(file *model.File) (*model.Table, error) {
+	f, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
 	r := csv.NewReader(f)
 	r.Comma = '\t'
 
@@ -119,7 +135,7 @@ func (l *ltsvReader) ReadLTSV(f *os.File) (*model.Table, error) {
 		}
 		records = append(records, r)
 	}
-	return model.NewTable(filepath.Base(f.Name()), model.NewHeader(label), records), nil
+	return model.NewTable(filepath.Base(file.NameWithoutExt()), model.NewHeader(label), records), nil
 }
 
 // labelAndData split label and data.

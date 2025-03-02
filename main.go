@@ -31,11 +31,13 @@ func run(stdout, stderr io.Writer, args []string) int {
 		return 0
 	}
 
-	sqluv, err := di.NewSqluv(arg)
+	sqluv, cleanup, err := di.NewSqluv(arg)
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to initialize TUI: %v\n", err)
 		return 1
 	}
+	defer cleanup()
+
 	if err := sqluv.Run(); err != nil {
 		fmt.Fprintf(stderr, "failed to run TUI: %v\n", err)
 		return 1

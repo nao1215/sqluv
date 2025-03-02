@@ -150,17 +150,4 @@ func TestFileReaderRead(t *testing.T) {
 			t.Errorf("unexpected error: %v", err)
 		}
 	})
-
-	t.Run("fail to open file", func(t *testing.T) {
-		t.Parallel()
-
-		fileReader := NewFileReader(nil, nil, nil)
-		file, err := model.NewFile("notfound")
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-		if _, err := fileReader.Read(file); err == nil {
-			t.Error("expected error, but got nil")
-		}
-	})
 }
