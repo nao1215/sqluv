@@ -72,6 +72,7 @@ func (q *queryResultTable) update(table *model.Table) {
 					SetExpansion(1))
 		}
 	}
+	q.ScrollToBeginning()
 }
 
 // calcMaxWidth calculates the maximum width of the table.

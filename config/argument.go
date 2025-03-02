@@ -1,5 +1,3 @@
-// Package config provides functionality to read environment variables,
-// runtime arguments, and configuration files.
 package config
 
 import (

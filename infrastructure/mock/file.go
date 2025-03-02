@@ -10,7 +10,6 @@
 package mock
 
 import (
-	os "os"
 	reflect "reflect"
 
 	model "github.com/nao1215/sqluv/domain/model"
@@ -42,18 +41,18 @@ func (m *MockCSVReader) EXPECT() *MockCSVReaderMockRecorder {
 }
 
 // ReadCSV mocks base method.
-func (m *MockCSVReader) ReadCSV(f *os.File) (*model.Table, error) {
+func (m *MockCSVReader) ReadCSV(file *model.File) (*model.Table, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadCSV", f)
+	ret := m.ctrl.Call(m, "ReadCSV", file)
 	ret0, _ := ret[0].(*model.Table)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReadCSV indicates an expected call of ReadCSV.
-func (mr *MockCSVReaderMockRecorder) ReadCSV(f any) *MockCSVReaderReadCSVCall {
+func (mr *MockCSVReaderMockRecorder) ReadCSV(file any) *MockCSVReaderReadCSVCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadCSV", reflect.TypeOf((*MockCSVReader)(nil).ReadCSV), f)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadCSV", reflect.TypeOf((*MockCSVReader)(nil).ReadCSV), file)
 	return &MockCSVReaderReadCSVCall{Call: call}
 }
 
@@ -69,13 +68,13 @@ func (c *MockCSVReaderReadCSVCall) Return(arg0 *model.Table, arg1 error) *MockCS
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockCSVReaderReadCSVCall) Do(f func(*os.File) (*model.Table, error)) *MockCSVReaderReadCSVCall {
+func (c *MockCSVReaderReadCSVCall) Do(f func(*model.File) (*model.Table, error)) *MockCSVReaderReadCSVCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockCSVReaderReadCSVCall) DoAndReturn(f func(*os.File) (*model.Table, error)) *MockCSVReaderReadCSVCall {
+func (c *MockCSVReaderReadCSVCall) DoAndReturn(f func(*model.File) (*model.Table, error)) *MockCSVReaderReadCSVCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -105,18 +104,18 @@ func (m *MockTSVReader) EXPECT() *MockTSVReaderMockRecorder {
 }
 
 // ReadTSV mocks base method.
-func (m *MockTSVReader) ReadTSV(f *os.File) (*model.Table, error) {
+func (m *MockTSVReader) ReadTSV(file *model.File) (*model.Table, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadTSV", f)
+	ret := m.ctrl.Call(m, "ReadTSV", file)
 	ret0, _ := ret[0].(*model.Table)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReadTSV indicates an expected call of ReadTSV.
-func (mr *MockTSVReaderMockRecorder) ReadTSV(f any) *MockTSVReaderReadTSVCall {
+func (mr *MockTSVReaderMockRecorder) ReadTSV(file any) *MockTSVReaderReadTSVCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadTSV", reflect.TypeOf((*MockTSVReader)(nil).ReadTSV), f)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadTSV", reflect.TypeOf((*MockTSVReader)(nil).ReadTSV), file)
 	return &MockTSVReaderReadTSVCall{Call: call}
 }
 
@@ -132,13 +131,13 @@ func (c *MockTSVReaderReadTSVCall) Return(arg0 *model.Table, arg1 error) *MockTS
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTSVReaderReadTSVCall) Do(f func(*os.File) (*model.Table, error)) *MockTSVReaderReadTSVCall {
+func (c *MockTSVReaderReadTSVCall) Do(f func(*model.File) (*model.Table, error)) *MockTSVReaderReadTSVCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTSVReaderReadTSVCall) DoAndReturn(f func(*os.File) (*model.Table, error)) *MockTSVReaderReadTSVCall {
+func (c *MockTSVReaderReadTSVCall) DoAndReturn(f func(*model.File) (*model.Table, error)) *MockTSVReaderReadTSVCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
@@ -168,18 +167,18 @@ func (m *MockLTSVReader) EXPECT() *MockLTSVReaderMockRecorder {
 }
 
 // ReadLTSV mocks base method.
-func (m *MockLTSVReader) ReadLTSV(f *os.File) (*model.Table, error) {
+func (m *MockLTSVReader) ReadLTSV(file *model.File) (*model.Table, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadLTSV", f)
+	ret := m.ctrl.Call(m, "ReadLTSV", file)
 	ret0, _ := ret[0].(*model.Table)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReadLTSV indicates an expected call of ReadLTSV.
-func (mr *MockLTSVReaderMockRecorder) ReadLTSV(f any) *MockLTSVReaderReadLTSVCall {
+func (mr *MockLTSVReaderMockRecorder) ReadLTSV(file any) *MockLTSVReaderReadLTSVCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadLTSV", reflect.TypeOf((*MockLTSVReader)(nil).ReadLTSV), f)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadLTSV", reflect.TypeOf((*MockLTSVReader)(nil).ReadLTSV), file)
 	return &MockLTSVReaderReadLTSVCall{Call: call}
 }
 
@@ -195,13 +194,13 @@ func (c *MockLTSVReaderReadLTSVCall) Return(arg0 *model.Table, arg1 error) *Mock
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockLTSVReaderReadLTSVCall) Do(f func(*os.File) (*model.Table, error)) *MockLTSVReaderReadLTSVCall {
+func (c *MockLTSVReaderReadLTSVCall) Do(f func(*model.File) (*model.Table, error)) *MockLTSVReaderReadLTSVCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockLTSVReaderReadLTSVCall) DoAndReturn(f func(*os.File) (*model.Table, error)) *MockLTSVReaderReadLTSVCall {
+func (c *MockLTSVReaderReadLTSVCall) DoAndReturn(f func(*model.File) (*model.Table, error)) *MockLTSVReaderReadLTSVCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

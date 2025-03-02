@@ -1,6 +1,9 @@
 package tui
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/nao1215/sqluv/config"
 	"github.com/nao1215/sqluv/domain/model"
@@ -18,13 +21,19 @@ type TUI struct {
 
 // home represents the home screen of the TUI.
 type usecases struct {
-	fileReader usecase.FileReader // read records from CSV/TSV/LTSV files and return them as model.Table.
+	fileReader     usecase.FileReader      // read records from CSV/TSV/LTSV files and return them as model.Table.
+	tableCreator   usecase.TableCreator    // create a table in memory database.
+	sqlExecutor    usecase.SQLExecutor     // execute a query in memory database.
+	recordInserter usecase.RecordsInserter // insert records in memory database.
 }
 
 // NewTUI creates a new TUI instance.
 func NewTUI(
 	arg *config.Argument,
 	fileReader usecase.FileReader,
+	tableCreator usecase.TableCreator,
+	sqlExecuter usecase.SQLExecutor,
+	recordInserter usecase.RecordsInserter,
 ) *TUI {
 	app := tview.NewApplication()
 	tui := &TUI{
@@ -32,7 +41,10 @@ func NewTUI(
 		home:  newHome(app),
 		app:   app,
 		usecases: &usecases{
-			fileReader: fileReader,
+			fileReader:     fileReader,
+			tableCreator:   tableCreator,
+			sqlExecutor:    sqlExecuter,
+			recordInserter: recordInserter,
 		},
 	}
 	tui.app.SetInputCapture(tui.keyBindings)
@@ -45,37 +57,40 @@ func NewTUI(
 
 // Run runs the TUI.
 func (t *TUI) Run() error {
-	// Set the root of the application
+	ctx := context.Background()
 	t.app.SetRoot(t.home.flex, true)
-
 	t.home.footer.home()
 
-	// Process files if available
 	if t.hasLocalFiles() {
-		// Load first file into the result table
-		table, err := t.usecases.fileReader.Read(t.files[0])
-		if err != nil {
+		if err := t.importFiles(ctx); err != nil {
 			t.showError(err)
 			return t.app.Run()
 		}
-		t.home.resultTable.update(table)
-		// Add files to sidebar
-		t.home.sidebar.addLocalFiles(t.files)
-
-		// Setup sidebar selection handler
-		t.home.sidebar.SetSelectedFunc(func(node *tview.TreeNode) {
-			// If a file node is selected
-			if file, ok := node.GetReference().(*model.File); ok {
-				table, err := t.usecases.fileReader.Read(file)
-				if err != nil {
-					t.showError(err)
-					return
-				}
-				t.home.resultTable.update(table)
-			}
-		})
 	}
 	return t.app.Run()
+}
+
+// importFiles imports files into the SQLite3 in-memory database.
+func (t *TUI) importFiles(ctx context.Context) error {
+	importedFiles := make([]*model.File, 0, len(t.files))
+	defer func() {
+		t.home.sidebar.addLocalFiles(importedFiles)
+	}()
+
+	for _, file := range t.files {
+		table, err := t.usecases.fileReader.Read(file)
+		if err != nil {
+			return err
+		}
+		if err := t.usecases.tableCreator.CreateTable(ctx, table); err != nil {
+			return err
+		}
+		if err := t.usecases.recordInserter.InsertRecords(ctx, table); err != nil {
+			return err
+		}
+		importedFiles = append(importedFiles, file)
+	}
+	return nil
 }
 
 // hasLocalFiles returns true if there are local files.
@@ -93,8 +108,34 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Key() {
 	case tcell.KeyEsc, tcell.KeyCtrlC:
 		t.app.Stop()
+	case tcell.KeyTab:
+		if t.home.queryTextArea.HasFocus() {
+			t.executeQuery(context.Background())
+			return nil
+		}
 	}
 	return event
+}
+
+// executeQuery executes the SQL query in the query text area
+func (t *TUI) executeQuery(ctx context.Context) {
+	query := t.home.queryTextArea.GetText()
+	sql, err := model.NewSQL(query)
+	if err != nil {
+		t.showError(err)
+		return
+	}
+
+	output, err := t.usecases.sqlExecutor.ExecuteSQL(ctx, sql)
+	if err != nil {
+		t.showError(fmt.Errorf("%w: sql='%s'", err, query))
+		return
+	}
+
+	if output.HasTable() {
+		t.home.resultTable.update(output.Table())
+	}
+	// TODO: Show rows affected in the footer
 }
 
 // mouseHandler handles mouse events.
