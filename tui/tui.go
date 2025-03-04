@@ -59,14 +59,20 @@ func NewTUI(
 func (t *TUI) Run() error {
 	ctx := context.Background()
 	t.app.SetRoot(t.home.flex, true)
-	t.home.footer.home()
+	t.home.footer.setDefaulShortcut()
 
 	if t.hasLocalFiles() {
 		if err := t.importFiles(ctx); err != nil {
 			t.showError(err)
+			t.app.SetFocus(t.home.queryTextArea)
 			return t.app.Run()
 		}
 	}
+
+	t.app.SetFocus(t.home.queryTextArea)
+	t.home.executeButton.SetSelectedFunc(func() {
+		t.executeQuery(context.Background())
+	})
 	return t.app.Run()
 }
 
@@ -103,14 +109,48 @@ func (t *TUI) showError(err error) {
 	t.home.errorDialog.Show(t.home.flex, err.Error())
 }
 
-// keyBindings handles key bindings.
 func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
-	switch event.Key() {
-	case tcell.KeyEsc, tcell.KeyCtrlC:
+	switch {
+	case event.Key() == tcell.KeyEsc, event.Key() == tcell.KeyCtrlD:
 		t.app.Stop()
-	case tcell.KeyTab:
+	case event.Key() == tcell.KeyTAB:
+		// Cycle focus: queryTextArea -> executeButton -> queryResultTable -> sidebar -> queryTextArea
 		if t.home.queryTextArea.HasFocus() {
-			t.executeQuery(context.Background())
+			t.app.SetFocus(t.home.executeButton)
+			return nil
+		} else if t.home.executeButton.HasFocus() {
+			// If there are query results, focus on result table, otherwise skip to sidebar
+			if t.hasQueryResults() {
+				t.app.SetFocus(t.home.resultTable)
+			} else {
+				t.app.SetFocus(t.home.sidebar)
+			}
+			return nil
+		} else if t.home.resultTable.HasFocus() {
+			t.app.SetFocus(t.home.sidebar)
+			return nil
+		} else if t.home.sidebar.HasFocus() {
+			t.app.SetFocus(t.home.queryTextArea)
+			return nil
+		}
+	case event.Key() == tcell.KeyBacktab: // SHIFT+TAB
+		// Reverse cycle: queryTextArea -> sidebar -> queryResultTable -> executeButton -> queryTextArea
+		if t.home.queryTextArea.HasFocus() {
+			t.app.SetFocus(t.home.sidebar)
+			return nil
+		} else if t.home.sidebar.HasFocus() {
+			// If there are query results, focus on result table, otherwise skip to execute button
+			if t.hasQueryResults() {
+				t.app.SetFocus(t.home.resultTable)
+			} else {
+				t.app.SetFocus(t.home.executeButton)
+			}
+			return nil
+		} else if t.home.resultTable.HasFocus() {
+			t.app.SetFocus(t.home.executeButton)
+			return nil
+		} else if t.home.executeButton.HasFocus() {
+			t.app.SetFocus(t.home.queryTextArea)
 			return nil
 		}
 	}
@@ -136,6 +176,19 @@ func (t *TUI) executeQuery(ctx context.Context) {
 		t.home.resultTable.update(output.Table())
 	}
 	// TODO: Show rows affected in the footer
+}
+
+// hasQueryResults checks if the result table has any query results
+func (t *TUI) hasQueryResults() bool {
+	// Check if there's more than just the header row (the "No query results" message)
+	rowCount := t.home.resultTable.GetRowCount()
+	if rowCount <= 1 {
+		return false
+	}
+
+	// Alternative check: Check if the first cell doesn't contain the "No query results" message
+	cell := t.home.resultTable.GetCell(0, 0)
+	return cell != nil && cell.Text != "No query results to display"
 }
 
 // mouseHandler handles mouse events.

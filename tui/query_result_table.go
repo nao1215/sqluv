@@ -24,9 +24,22 @@ func newQueryResultTable() *queryResultTable {
 	table.SetFixed(1, 0)
 	table.SetSelectable(true, true)
 
+	table.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDefault))
 	queryResultTable := &queryResultTable{
 		Table: table,
 	}
+
+	queryResultTable.SetFocusFunc(func() {
+		queryResultTable.SetBorder(false)
+		queryResultTable.SetBorderColor(tcell.ColorGreen)
+		queryResultTable.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorGreen).Foreground(tcell.ColorBlack))
+	})
+
+	queryResultTable.SetBlurFunc(func() {
+		queryResultTable.SetBorderColor(tcell.ColorDefault)
+		queryResultTable.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDefault))
+	})
+
 	queryResultTable.clear()
 	return queryResultTable
 }
