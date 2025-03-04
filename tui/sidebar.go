@@ -23,6 +23,12 @@ func newSidebar() *sidebar {
 	tree.SetCurrentNode(root)
 	tree.SetTitleAlign(tview.AlignLeft)
 	tree.SetBorder(true)
+	tree.SetFocusFunc(func() {
+		tree.SetBorderColor(tcell.ColorGreen)
+	})
+	tree.SetBlurFunc(func() {
+		tree.SetBorderColor(tcell.ColorDefault)
+	})
 
 	rootNode := tview.NewTreeNode("-")
 	tree.SetRoot(rootNode)

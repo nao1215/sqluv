@@ -52,10 +52,11 @@ func (f *footer) update() {
 	f.SetText(text)
 }
 
-// home changes the shortcuts to the home screen.
-func (f *footer) home() {
+// setDefaulShortcut changes the shortcuts to the setDefaulShortcut screen.
+func (f *footer) setDefaulShortcut() {
 	f.clearShortcuts()
-	f.addShortcut("Ctrl-C", "Quit")
+	f.addShortcut("Ctrl-D", "Quit")
 	f.addShortcut("Esc", "Quit")
+	f.addShortcut("TAB", "Change focus")
 	f.update()
 }
