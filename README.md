@@ -43,7 +43,7 @@ sqluv [FILE_PATH]
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
 
-### Contact
+## Contact
 If you would like to send comments such as "find a bug" or "request for additional features" to the developer, please use one of the following contacts.
 
 - [GitHub Issue](https://github.com/nao1215/sqluv/issues)
