@@ -34,7 +34,7 @@ changelog:
       - "^test:"
 nfpms:
   - maintainer: Naohiro CHIKAMATSU <n.chika156@gmail.com>
-    description: sqluv - simple terminal UI for local CSV/TSV/LTSV.
+    description: sqluv - execute SQL against CSV/TSV/LTSV with TUI
     homepage: https://github.com/nao1215/sqluv
     license: MIT License
     formats:
@@ -43,7 +43,7 @@ nfpms:
       - apk
 brews:
   - name: sqluv
-    description: sqluv - simple terminal UI for local CSV/TSV/LTSV.
+    description: sqluv - execute SQL against CSV/TSV/LTSV with TUI
     license: MIT
     repository:
       owner: nao1215
