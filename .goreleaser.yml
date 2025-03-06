@@ -1,0 +1,51 @@
+project_name: sqly
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - main: .
+    ldflags:
+      - -s -w -X 'github.com/nao1215/sqluv/config.Version=v{{ .Version }}'
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+nfpms:
+  - maintainer: Naohiro CHIKAMATSU <n.chika156@gmail.com>
+    description: sqluv - simple terminal UI for local CSV/TSV/LTSV.
+    homepage: https://github.com/nao1215/sqluv
+    license: MIT License
+    formats:
+      - deb
+      - rpm
+      - apk
+brews:
+  - name: sqluv
+    description: sqluv - simple terminal UI for local CSV/TSV/LTSV.
+    license: MIT
+    repository:
+      owner: nao1215
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
