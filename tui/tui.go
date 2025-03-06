@@ -2,6 +2,7 @@ package tui
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gdamore/tcell/v2"
@@ -67,6 +68,8 @@ func (t *TUI) Run() error {
 			t.app.SetFocus(t.home.queryTextArea)
 			return t.app.Run()
 		}
+	} else {
+		return errors.New("you must specify at least one file to import")
 	}
 
 	t.app.SetFocus(t.home.queryTextArea)
