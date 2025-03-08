@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"modernc.org/sqlite"
 )
 
@@ -59,4 +61,117 @@ func (d sqliteDriver) Open(name string) (driver.Conn, error) {
 		return nil, fmt.Errorf("failed to enable enable foreign keys: %w", err)
 	}
 	return conn, nil
+}
+
+// DBMS is a common interface for database connections
+type DBMS *sql.DB
+
+// MySQLDB is *sql.DB for executing SQL with MySQL.
+type MySQLDB = DBMS
+
+// PostgreSQLDB is *sql.DB for executing SQL with PostgreSQL
+type PostgreSQLDB = DBMS
+
+// MySQLConfig holds the configuration for MySQL connection.
+type MySQLConfig struct {
+	host     string
+	port     int
+	user     string
+	password string
+	database string
+}
+
+// NewMySQLConfig creates MySQLConfig.
+func NewMySQLConfig(
+	host string,
+	port int,
+	user string,
+	password string,
+	database string,
+) MySQLConfig {
+	return MySQLConfig{
+		host:     host,
+		port:     port,
+		user:     user,
+		password: password,
+		database: database,
+	}
+}
+
+// NewMySQLDB creates *sql.DB for MySQL.
+// The return function is the function to close the DB.
+func NewMySQLDB(config MySQLConfig) (MySQLDB, func(), error) {
+	c := mysql.Config{
+		DBName:    config.database,
+		User:      config.user,
+		Passwd:    config.password,
+		Addr:      fmt.Sprintf("%s:%d", config.host, config.port),
+		Net:       "tcp",
+		ParseTime: true,
+		Collation: "utf8mb4_unicode_ci",
+	}
+
+	db, err := sql.Open("mysql", c.FormatDSN())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to MySQL: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, nil, fmt.Errorf("failed to ping MySQL: %w", err)
+	}
+	return MySQLDB(db), func() { db.Close() }, nil
+}
+
+// PostgreSQLConfig holds the configuration for PostgreSQL connection.
+type PostgreSQLConfig struct {
+	host     string
+	port     int
+	user     string
+	password string
+	database string
+	sslMode  string
+}
+
+// NewPostgreSQLConfig creates PostgreSQLConfig.
+func NewPostgreSQLConfig(
+	host string,
+	port int,
+	user string,
+	password string,
+	database string,
+) PostgreSQLConfig {
+	return PostgreSQLConfig{
+		host:     host,
+		port:     port,
+		user:     user,
+		password: password,
+		database: database,
+		sslMode:  "disable", // Default to disable for development
+	}
+}
+
+// NewPostgreSQLDB creates *sql.DB for PostgreSQL.
+// The return function is the function to close the DB.
+func NewPostgreSQLDB(config PostgreSQLConfig) (PostgreSQLDB, func(), error) {
+	connStr := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		config.host,
+		config.port,
+		config.user,
+		config.password,
+		config.database,
+		config.sslMode,
+	)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, nil, fmt.Errorf("failed to ping PostgreSQL: %w", err)
+	}
+	return PostgreSQLDB(db), func() { db.Close() }, nil
 }

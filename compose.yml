@@ -15,5 +15,18 @@ services:
       - ./docker/mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf
       - mysql_data:/var/lib/mysql
 
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
   mysql_data:
+  postgres_data:

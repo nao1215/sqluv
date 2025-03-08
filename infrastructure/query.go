@@ -1,4 +1,4 @@
-package memory
+package infrastructure
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/nao1215/sqluv/domain/model"
-	"github.com/nao1215/sqluv/infrastructure"
 )
 
-func query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) {
+// Query executes query.
+func Query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) {
 	rows, err := tx.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) 
 		return nil, err
 	}
 	if len(header) == 0 {
-		return nil, infrastructure.ErrNoRows
+		return nil, ErrNoRows
 	}
 
 	scanDest := make([]interface{}, len(header))
@@ -49,12 +49,12 @@ func query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) 
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return model.NewTable(extractTableName(query), header, records), nil
+	return model.NewTable(ExtractTableName(query), header, records), nil
 }
 
-// extractTableName extract table name from query.
+// ExtractTableName extract table name from query.
 // The query must be "SELECT" or "EXPLAIN" statement.
-func extractTableName(query string) string {
+func ExtractTableName(query string) string {
 	query = strings.ReplaceAll(query, "`", "")
 	words := strings.Fields(query)
 	for i, v := range words {

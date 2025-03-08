@@ -40,7 +40,7 @@ func newSidebar() *sidebar {
 }
 
 // Add this method to your sidebar struct
-func (s *sidebar) addLocalFiles(files []*model.File) {
+func (s *sidebar) updateLocalFiles(files []*model.File) {
 	// Find or create the "local" root node
 	root := s.GetRoot()
 	var localNode *tview.TreeNode
@@ -70,4 +70,30 @@ func (s *sidebar) addLocalFiles(files []*model.File) {
 			SetReference(file) // Store the file reference for later use
 		localNode.AddChild(fileNode)
 	}
+}
+
+// updateTables update tables in the sidebar
+func (s *sidebar) updateTables(tables []*model.Table, dbName string) {
+	root := s.GetRoot()
+	if root == nil {
+		root = tview.NewTreeNode("Databases")
+		s.SetRoot(root)
+	}
+	root.ClearChildren()
+
+	// Create MySQL database node
+	dbNode := tview.NewTreeNode(dbName).
+		SetSelectable(true).
+		SetColor(tcell.ColorGreen)
+	root.AddChild(dbNode)
+
+	// Add tables under the database node
+	for _, table := range tables {
+		tableNode := tview.NewTreeNode(table.Name()).
+			SetSelectable(true).
+			SetReference(table).
+			SetColor(tcell.ColorWhite)
+		dbNode.AddChild(tableNode)
+	}
+	s.SetCurrentNode(root)
 }
