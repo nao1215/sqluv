@@ -1,6 +1,6 @@
-![sqluv_demo](./doc/image/demo.gif)
+![dbms_demo](doc/image/dbms_demo.gif)
 
-The **sqluv (sql + love)** provides a TUI for executing SQL queries on local CSV, TSV, and LTSV files. Currently, it supports only simple SELECT queries. In the future, it is planned to offer functionality to operate as a client for multiple DBMSs.
+The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local files.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
@@ -17,11 +17,13 @@ go install github.com/nao1215/sqluv@latest
 brew install nao1215/tap/sqluv
 ```
 
-## Supported OS & go version
+## Supported OS, DBMS, go version
 
 - Windows
 - macOS
 - Linux
+- MySQL
+- PostgreSQL
 - go1.24 or later
 
 ## How to use
@@ -29,10 +31,32 @@ brew install nao1215/tap/sqluv
 ### Syntax
 
 ```shell
-sqluv [FILE_PATH]
+sqluv [FILE_PATHS]
 ```
 
 ※ Supported file formats: CSV, TSV, LTSV
+
+### Connect to DBMS
+
+When you start the sqluv command without specifying a file path, the following screen will appear. 
+
+![first_screen](doc/image/dbms_first.png)
+
+Please enter the connection information for the DBMS you want to connect to.
+
+![dbms_connection](doc/image/dbms_info.png)
+
+If the connection is successful, database connection information will be saved in the configuration file. The next time you start the sqluv command, you will be able to select the DBMS you want to connect to from the list.
+
+![dbms_list](doc/image/dbms_list.png)
+
+
+### Read from a file
+
+Please specify a file path when executing the sqluv command. The file will be loaded before launching the TUI.
+If you start the sqluv command without specifying a file path, it will enter DBMS connection mode, and local files cannot be loaded.
+
+![sqluv_demo](./doc/image/demo.gif)
 
 ## Key bindings
 
@@ -42,6 +66,13 @@ sqluv [FILE_PATH]
 | Ctrl + D | Quit |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
+
+## Contributing
+
+First off, thanks for taking the time to contribute! See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information. Contributions are not only related to development. For example, GitHub Star motivates me to develop! 
+
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nao1215/sqluv&type=Date)](https://star-history.com/#nao1215/sqluv&Date)
 
 ## Contact
 If you would like to send comments such as "find a bug" or "request for additional features" to the developer, please use one of the following contacts.
