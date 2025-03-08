@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	_ "github.com/microsoft/go-mssqldb"
 	"modernc.org/sqlite"
 )
 
@@ -174,4 +175,96 @@ func NewPostgreSQLDB(config PostgreSQLConfig) (PostgreSQLDB, func(), error) {
 		return nil, nil, fmt.Errorf("failed to ping PostgreSQL: %w", err)
 	}
 	return PostgreSQLDB(db), func() { db.Close() }, nil
+}
+
+// SQLite3Config holds the configuration for SQLite3 connection.
+type SQLite3Config struct {
+	filepath string
+}
+
+// NewSQLite3Config creates SQLite3Config.
+func NewSQLite3Config(filepath string) SQLite3Config {
+	return SQLite3Config{
+		filepath: filepath,
+	}
+}
+
+// SQLite3DB is *sql.DB for executing SQL with SQLite3.
+type SQLite3DB = DBMS
+
+// NewSQLite3DB creates *sql.DB for SQLite3.
+// The return function is the function to close the DB.
+func NewSQLite3DB(config SQLite3Config) (SQLite3DB, func(), error) {
+	// We're already using the sqlite driver for in-memory DB
+	// Make sure it's initialized
+	initSQLite3()
+
+	db, err := sql.Open("sqlite3", config.filepath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to SQLite3: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, nil, fmt.Errorf("failed to ping SQLite3: %w", err)
+	}
+	return SQLite3DB(db), func() { db.Close() }, nil
+}
+
+// SQLServerConfig holds the configuration for SQL Server connection.
+type SQLServerConfig struct {
+	host     string
+	port     int
+	user     string
+	password string
+	database string
+	// Additional SQL Server specific options can be added here
+	trustServerCertificate bool
+}
+
+// NewSQLServerConfig creates SQLServerConfig.
+func NewSQLServerConfig(
+	host string,
+	port int,
+	user string,
+	password string,
+	database string,
+) SQLServerConfig {
+	return SQLServerConfig{
+		host:                   host,
+		port:                   port,
+		user:                   user,
+		password:               password,
+		database:               database,
+		trustServerCertificate: true, // For development purposes
+	}
+}
+
+// SQLServerDB is *sql.DB for executing SQL with SQL Server.
+type SQLServerDB = DBMS
+
+// NewSQLServerDB creates *sql.DB for SQL Server.
+// The return function is the function to close the DB.
+func NewSQLServerDB(config SQLServerConfig) (SQLServerDB, func(), error) {
+	// SQL Server connection string format
+	connStr := fmt.Sprintf(
+		"server=%s;user id=%s;password=%s;port=%d;database=%s;encrypt=true;trustservercertificate=%t",
+		config.host,
+		config.user,
+		config.password,
+		config.port,
+		config.database,
+		config.trustServerCertificate,
+	)
+
+	db, err := sql.Open("sqlserver", connStr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to SQL Server: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, nil, fmt.Errorf("failed to ping SQL Server: %w", err)
+	}
+	return SQLServerDB(db), func() { db.Close() }, nil
 }

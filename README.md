@@ -24,6 +24,8 @@ brew install nao1215/tap/sqluv
 - Linux
 - MySQL
 - PostgreSQL
+- SQLite3
+- SQL Server
 - go1.24 or later
 
 ## How to use

@@ -97,106 +97,109 @@ func (t *TUI) Run() error {
 	return t.app.Run()
 }
 
+// handleDBConnection is a generic function to handle database connections
+func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
+	db, closeDB, err := t.newDatabaseConfig(conn)
+	if err != nil {
+		return err
+	}
+
+	// Store the database connection for later use
+	t.databaseName = conn.Database
+	t.closeDB = closeDB
+	t.isDBConnected = true
+
+	// Initialize DBMS usecases
+	queryExecutor := persistence.NewQueryExecutor(db)
+	statementExecutor := persistence.NewStatementExecutor(db)
+	tablesGetter := persistence.NewTablesGetter(db, conn.Database, conn.Type)
+
+	t.dbmsUsecases = &dbmsUsecases{
+		queryExecutor: interactor.NewQueryExecutor(queryExecutor, statementExecutor),
+		tablesGetter:  interactor.NewTablesGetter(tablesGetter),
+	}
+
+	// Load tables and update the sidebar
+	t.loadDatabaseTables(context.Background(), conn.Database)
+
+	// Successfully connected to the database
+	t.app.SetRoot(t.home.flex, true)
+	t.app.SetFocus(t.home.queryTextArea)
+	return nil
+}
+
+// newDatabaseConfig creates a new database configuration
+func (t *TUI) newDatabaseConfig(conn *config.DBConnection) (config.DBMS, func(), error) {
+	var db config.DBMS
+	var closeDB func()
+	var err error
+
+	switch conn.Type {
+	case config.MySQL:
+		mysqlConfig := config.NewMySQLConfig(
+			conn.Host,
+			conn.Port,
+			conn.User,
+			conn.Password,
+			conn.Database,
+		)
+		db, closeDB, err = config.NewMySQLDB(mysqlConfig)
+		if err != nil {
+			return nil, nil, err
+		}
+	case config.PostgreSQL:
+		pgConfig := config.NewPostgreSQLConfig(
+			conn.Host,
+			conn.Port,
+			conn.User,
+			conn.Password,
+			conn.Database,
+		)
+		db, closeDB, err = config.NewPostgreSQLDB(pgConfig)
+		if err != nil {
+			return nil, nil, err
+		}
+	case config.SQLite3:
+		sqliteConfig := config.NewSQLite3Config(conn.Database)
+		db, closeDB, err = config.NewSQLite3DB(sqliteConfig)
+		if err != nil {
+			return nil, nil, err
+		}
+	case config.SQLServer:
+		sqlserverConfig := config.NewSQLServerConfig(
+			conn.Host,
+			conn.Port,
+			conn.User,
+			conn.Password,
+			conn.Database,
+		)
+		db, closeDB, err = config.NewSQLServerDB(sqlserverConfig)
+		if err != nil {
+			return nil, nil, err
+		}
+	default:
+		return nil, nil, fmt.Errorf("unsupported database type: %s", conn.Type)
+	}
+	return db, closeDB, nil
+}
+
 // handleConnectionSelection processes the selected database connection
 func (t *TUI) handleConnectionSelection(conn *config.DBConnection) {
 	if conn == nil {
 		return // User canceled, exit the application
 	}
 
-	// Connect to the database based on connection type
-	switch conn.Type {
-	case config.MySQL:
-		t.handleMySQLConnection(conn)
-	case config.PostgreSQL:
-		t.handlePostgreSQLConnection(conn)
-	default:
-		t.showError(fmt.Errorf("unsupported database type: %s", conn.Type))
+	err := t.handleDBConnection(conn)
+	if err != nil {
+		// Connection failed, show error and offer to remove the connection
+		t.showFailedConnectionDialog(conn, err)
+		return
 	}
 
 	t.app.SetFocus(t.home.queryTextArea)
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
 	})
-}
-
-// Add new method for handling PostgreSQL connections
-func (t *TUI) handlePostgreSQLConnection(conn *config.DBConnection) {
-	pgConfig := config.NewPostgreSQLConfig(
-		conn.Host,
-		conn.Port,
-		conn.User,
-		conn.Password,
-		conn.Database,
-	)
-
-	db, closeDB, err := config.NewPostgreSQLDB(pgConfig)
-	if err != nil {
-		// Connection failed, show error and offer to remove the connection
-		t.showFailedConnectionDialog(conn, err)
-		return
-	}
-
-	// Store the database connection for later use
-	t.databaseName = conn.Database
-	t.closeDB = closeDB
-	t.isDBConnected = true
-
-	// Initialize DBMS usecases
-	queryExecutor := persistence.NewQueryExecutor(db)
-	statementExecutor := persistence.NewStatementExecutor(db)
-	tablesGetter := persistence.NewTablesGetter(db, conn.Database, conn.Type)
-
-	t.dbmsUsecases = &dbmsUsecases{
-		queryExecutor: interactor.NewQueryExecutor(queryExecutor, statementExecutor),
-		tablesGetter:  interactor.NewTablesGetter(tablesGetter),
-	}
-
-	// Load tables and update the sidebar
-	t.loadDatabaseTables(context.Background(), conn.Database)
-
-	// Successfully connected to the database
-	t.app.SetRoot(t.home.flex, true)
-	t.app.SetFocus(t.home.queryTextArea)
-}
-
-// Update the MySQL connection handler for consistency
-func (t *TUI) handleMySQLConnection(conn *config.DBConnection) {
-	mysqlConfig := config.NewMySQLConfig(
-		conn.Host,
-		conn.Port,
-		conn.User,
-		conn.Password,
-		conn.Database,
-	)
-
-	db, closeDB, err := config.NewMySQLDB(mysqlConfig)
-	if err != nil {
-		// Connection failed, show error and offer to remove the connection
-		t.showFailedConnectionDialog(conn, err)
-		return
-	}
-
-	// Store the database connection for later use
-	t.databaseName = conn.Database
-	t.closeDB = closeDB
-	t.isDBConnected = true
-
-	// Initialize DBMS usecases
-	queryExecutor := persistence.NewQueryExecutor(db)
-	statementExecutor := persistence.NewStatementExecutor(db)
-	tablesGetter := persistence.NewTablesGetter(db, conn.Database, conn.Type)
-
-	t.dbmsUsecases = &dbmsUsecases{
-		queryExecutor: interactor.NewQueryExecutor(queryExecutor, statementExecutor),
-		tablesGetter:  interactor.NewTablesGetter(tablesGetter),
-	}
-
-	// Load tables and update the sidebar
-	t.loadDatabaseTables(context.Background(), conn.Database)
-
-	// Successfully connected to the database
-	t.app.SetRoot(t.home.flex, true)
-	t.app.SetFocus(t.home.queryTextArea)
 }
 
 // showFailedConnectionDialog shows a dialog for failed connections with option to remove
