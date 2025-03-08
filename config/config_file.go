@@ -18,6 +18,12 @@ const (
 	MySQL DBMSType = "MySQL"
 	// PostgreSQL represents the PostgreSQL DBMS
 	PostgreSQL DBMSType = "PostgreSQL"
+	// SQLite3 represents the SQLite3 DBMS
+	SQLite3 DBMSType = "SQLite3"
+	// SQLServer represents the Microsoft SQL Server DBMS
+	SQLServer DBMSType = "SQLServer"
+	// Oracle represents the Oracle Database
+	Oracle DBMSType = "Oracle"
 )
 
 // DBConnection represents a database connection configuration as a value object

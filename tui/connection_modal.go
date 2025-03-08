@@ -58,39 +58,128 @@ func (cm *connectionModal) showNewConnectionForm() {
 	form := tview.NewForm()
 
 	form.AddInputField("Connection Name", "", 30, nil, nil)
+	dbmsTypes := []string{string(config.MySQL), string(config.PostgreSQL), string(config.SQLite3), string(config.SQLServer)}
 
-	dbmsTypes := []string{string(config.MySQL), string(config.PostgreSQL)}
+	// First add all form fields without the callback
 	form.AddDropDown("DBMS Type", dbmsTypes, 0, nil)
 	form.AddInputField("Host", "127.0.0.1", 50, nil, nil)
 	form.AddInputField("Port", "3306", 10, func(_ string, lastChar rune) bool {
 		return '0' <= lastChar && lastChar <= '9'
 	}, nil)
-
 	form.AddInputField("Username", "", 30, nil, nil)
 	form.AddPasswordField("Password", "", 30, '*', nil)
 	form.AddInputField("Database Name", "", 30, nil, nil)
+	form.AddInputField("Database File Path (SQLite3 only)", "", 50, nil, nil)
+
+	// Now that all fields exist, we can set up the callback for the dropdown
+	dbmsDropdown := form.GetFormItem(1).(*tview.DropDown)
+	hostField := form.GetFormItem(2).(*tview.InputField)
+	portField := form.GetFormItem(3).(*tview.InputField)
+	usernameField := form.GetFormItem(4).(*tview.InputField)
+	passwordField := form.GetFormItem(5).(*tview.InputField)
+	databaseField := form.GetFormItem(6).(*tview.InputField)
+	filePathField := form.GetFormItem(7).(*tview.InputField)
+
+	// Initially disable the SQLite3 file path field
+	filePathField.SetDisabled(true)
+
+	// Set the change handler for the dropdown
+	dbmsDropdown.SetSelectedFunc(func(option string, _ int) {
+		if option == string(config.SQLite3) {
+			// For SQLite3, disable network and authentication fields
+			hostField.SetLabel("Host (N/A for SQLite3)")
+			hostField.SetDisabled(true)
+			hostField.SetText("N/A")
+
+			portField.SetLabel("Port (N/A for SQLite3)")
+			portField.SetDisabled(true)
+			portField.SetText("0")
+
+			usernameField.SetLabel("Username (N/A for SQLite3)")
+			usernameField.SetDisabled(true)
+			usernameField.SetText("N/A")
+
+			passwordField.SetLabel("Password (N/A for SQLite3)")
+			passwordField.SetDisabled(true)
+			passwordField.SetText("N/A")
+
+			databaseField.SetLabel("Database Name (N/A for SQLite3)")
+			databaseField.SetDisabled(true)
+			databaseField.SetText("N/A")
+
+			filePathField.SetLabel("Database File Path")
+			filePathField.SetDisabled(false)
+		} else {
+			// For other DBMSes, enable network and authentication fields
+			hostField.SetLabel("Host")
+			hostField.SetDisabled(false)
+			hostField.SetText("127.0.0.1")
+
+			portField.SetLabel("Port")
+			portField.SetDisabled(false)
+			if option == string(config.MySQL) {
+				portField.SetText("3306")
+			} else if option == string(config.PostgreSQL) {
+				portField.SetText("5432")
+			} else if option == string(config.SQLServer) {
+				portField.SetText("1433")
+			}
+
+			usernameField.SetLabel("Username")
+			usernameField.SetDisabled(false)
+			usernameField.SetText("")
+
+			passwordField.SetLabel("Password")
+			passwordField.SetDisabled(false)
+			passwordField.SetText("")
+
+			databaseField.SetLabel("Database Name")
+			databaseField.SetDisabled(false)
+			databaseField.SetText("")
+
+			filePathField.SetLabel("Database File Path (SQLite3 only)")
+			filePathField.SetDisabled(true)
+			filePathField.SetText("")
+		}
+	})
 
 	form.AddButton("Save", func() {
 		name := form.GetFormItem(0).(*tview.InputField).GetText()
-		_, dbmsType := form.GetFormItem(1).(*tview.DropDown).GetCurrentOption()
+		dbmsTypeIndex, _ := form.GetFormItem(1).(*tview.DropDown).GetCurrentOption()
+		dbmsType := dbmsTypes[dbmsTypeIndex]
 		host := form.GetFormItem(2).(*tview.InputField).GetText()
 		portStr := form.GetFormItem(3).(*tview.InputField).GetText()
 		username := form.GetFormItem(4).(*tview.InputField).GetText()
 		password := form.GetFormItem(5).(*tview.InputField).GetText()
 		database := form.GetFormItem(6).(*tview.InputField).GetText()
+		filePath := form.GetFormItem(7).(*tview.InputField).GetText()
 
 		port, _ := strconv.Atoi(portStr) //nolint:errcheck // Error is handled by the form validation
 
 		conn := config.DBConnection{
-			Name:     name,
-			Type:     config.DBMSType(dbmsType),
-			Host:     host,
-			Port:     port,
-			User:     username,
-			Password: password,
-			Database: database,
+			Name: name,
+			Type: config.DBMSType(dbmsType),
 		}
 
+		// Set appropriate fields based on DBMS type
+		if conn.Type == config.SQLite3 {
+			// For SQLite3, only the file path is relevant
+			conn.Database = filePath
+			// Leave other fields with empty/default values
+			conn.Host = "N/A"
+			conn.Port = 0
+			conn.User = "N/A"
+			conn.Password = ""
+		} else {
+			// For other DBMS types, set all connection properties
+			conn.Host = host
+			conn.Port = port
+			conn.User = username
+			conn.Password = password
+			conn.Database = database
+		}
+
+		// Save connection in configuration
 		if err := cm.configMgr.SaveConnection(conn); err != nil {
 			cm.showError(err.Error())
 			return
@@ -131,9 +220,19 @@ func (cm *connectionModal) showConnectionsList() {
 
 	// Add connections to the list
 	for i, conn := range connections {
+		if conn.Type == config.SQLite3 {
+			list.AddItem(
+				conn.Name,
+				fmt.Sprintf("%s database=%s", conn.Type, conn.Database),
+				rune('1'+i),
+				func() {
+					cm.connectToDatabase(conn)
+				})
+			continue
+		}
 		list.AddItem(
 			conn.Name,
-			fmt.Sprintf("%s %s:%d", conn.Type, conn.Host, conn.Port),
+			fmt.Sprintf("%s %s:%d database=%s", conn.Type, conn.Host, conn.Port, conn.Database),
 			rune('1'+i),
 			func() {
 				cm.connectToDatabase(conn)

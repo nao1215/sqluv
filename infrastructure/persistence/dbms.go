@@ -68,12 +68,19 @@ func (g *tablesGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 	// Use the appropriate query based on database type
 	switch g.dbmsType {
 	case config.MySQL:
-		// Get all tables in the current database for MySQL
 		query := "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = ?"
 		rows, err = tx.QueryContext(ctx, query, g.database)
 	case config.PostgreSQL:
-		// Get all tables in the current database for PostgreSQL
 		query := "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+		rows, err = tx.QueryContext(ctx, query)
+	case config.SQLite3:
+		query := "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+		rows, err = tx.QueryContext(ctx, query)
+	case config.SQLServer:
+		query := "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'dbo'"
+		rows, err = tx.QueryContext(ctx, query)
+	case config.Oracle:
+		query := "SELECT table_name FROM user_tables"
 		rows, err = tx.QueryContext(ctx, query)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", g.dbmsType)
