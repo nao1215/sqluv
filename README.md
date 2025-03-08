@@ -67,6 +67,15 @@ If you start the sqluv command without specifying a file path, it will enter DBM
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
 
+## Altenative Tools
+
+|Name | Description |
+|:----|:------------|
+| [jorgerojas26/lazysql](https://github.com/jorgerojas26/lazysql) |A cross-platform TUI database management tool written in Go.|
+| [vladbalmos/mitzasql](https://github.com/vladbalmos/mitzasql) | MySQL command line / text based interface client |
+| [TaKO8Ki/gobang](https://github.com/TaKO8Ki/gobang) | A cross-platform TUI database management tool written in Rust |
+
+
 ## Contributing
 
 First off, thanks for taking the time to contribute! See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information. Contributions are not only related to development. For example, GitHub Star motivates me to develop! 
