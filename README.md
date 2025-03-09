@@ -4,6 +4,9 @@ The **sqluv (sql + love)** provides a simple text user interface for multiple DB
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
+>[!WARNING]
+> sqluv is under development. Do not execute UPDATE or DELETE in the production environment. Currently sqluv starts transactions and executes commits on a per SQL query basis. Therefore, commits may be executed at unexpected times.
+
 ## How to install
 ### Use "go install"
 
