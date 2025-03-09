@@ -9,4 +9,7 @@ var Set = wire.NewSet(
 	NewTableCreator,
 	NewRecordsInserter,
 	NewSQLExecutor,
+	NewHistoryTableCreator,
+	NewHistoryCreator,
+	NewHistoryLister,
 )

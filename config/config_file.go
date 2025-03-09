@@ -44,7 +44,8 @@ type DBConfigFile struct {
 
 // DBConfig manages database configurations
 type DBConfig struct {
-	configPath string
+	configPath    string
+	hisotryDBPath string
 }
 
 // NewDBConfig creates a new database configuration manager
@@ -57,17 +58,14 @@ func NewDBConfig() (*DBConfig, error) {
 		}
 	}
 	return &DBConfig{
-		configPath: filepath.Join(configDir, "dbms.yml"),
+		configPath:    filepath.Join(configDir, "dbms.yml"),
+		hisotryDBPath: filepath.Join(configDir, "history.db"),
 	}, nil
 }
 
 // getConfigDir returns the configuration directory path
 func getConfigDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	configDir := filepath.Join(homeDir, ".config", "sqluv")
+	configDir := filepath.Join(xdg.ConfigHome, "sqluv")
 	if _, err := os.Stat(configDir); err != nil {
 		return "", err
 	}
@@ -76,7 +74,7 @@ func getConfigDir() (string, error) {
 
 // ensureConfigDir ensures the config directory exists and returns its path
 func ensureConfigDir() (string, error) {
-	configDir := filepath.Join(xdg.ConfigHome, ".config", "sqluv")
+	configDir := filepath.Join(xdg.ConfigHome, "sqluv")
 	if err := os.MkdirAll(configDir, 0750); err != nil {
 		return "", err
 	}

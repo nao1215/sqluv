@@ -55,6 +55,16 @@ If the connection is successful, database connection information will be saved i
 
 ![dbms_list](doc/image/dbms_list.png)
 
+## SQL query history
+
+If you execute a SQL query, the history will be saved in the `~/.config/sqluv/history.db`. So, you can look up the history by pressing the history button.
+
+![history_button](./doc/image/history_button.png)
+
+If you select a history, the SQL query will be copied to the query text area.
+
+![history_list](./doc/image/sql_query_history.png)
+
 
 ### Read from a file
 

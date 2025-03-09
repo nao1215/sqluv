@@ -268,3 +268,16 @@ func NewSQLServerDB(config SQLServerConfig) (SQLServerDB, func(), error) {
 	}
 	return SQLServerDB(db), func() { db.Close() }, nil
 }
+
+// HistoryDB is *sql.DB for sqly shell history.
+type HistoryDB *sql.DB
+
+// NewHistoryDB create *sql.DB for history.
+// The return function is the function to close the DB.
+func NewHistoryDB(cfg *DBConfig) (HistoryDB, func(), error) {
+	db, err := sql.Open("sqlite3", cfg.hisotryDBPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	return HistoryDB(db), func() { db.Close() }, nil
+}

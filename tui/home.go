@@ -8,6 +8,7 @@ type home struct {
 	sidebar       *sidebar
 	queryTextArea *queryTextArea
 	executeButton *executeButton
+	historyButton *historyButton
 	resultTable   *queryResultTable
 	footer        *footer
 	errorDialog   *errorDialog
@@ -18,14 +19,19 @@ func newHome(app *tview.Application) *home {
 	sidebarComponent := newSidebar()
 	textArea := newQueryTextArea()
 	executeButton := newExecuteButton()
+	historyButton := newHistoryButton()
 	resultTableComponent := newQueryResultTable()
 	footerComponent := newFooter()
+
+	buttonPanel := tview.NewFlex().
+		AddItem(executeButton, 0, 1, false).
+		AddItem(historyButton, 0, 1, false)
 
 	// Create a flex for the query input and results (vertical layout)
 	rightPanel := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(textArea, 6, 0, true).
-		AddItem(executeButton, 1, 0, false).
+		AddItem(buttonPanel, 1, 0, false).
 		AddItem(resultTableComponent, 0, 1, false)
 
 	// Main content with sidebar and right panel (horizontal layout)
@@ -44,6 +50,7 @@ func newHome(app *tview.Application) *home {
 		sidebar:       sidebarComponent,
 		queryTextArea: textArea,
 		executeButton: executeButton,
+		historyButton: historyButton,
 		resultTable:   resultTableComponent,
 		errorDialog:   newErrorDialog(app),
 		footer:        footerComponent,
