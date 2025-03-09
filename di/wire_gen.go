@@ -33,8 +33,25 @@ func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
 	sqlExecutor := interactor.NewSQLExecutor(queryExecutor, statementExecutor)
 	recordsInserter := memory.NewRecordInserter(memoryDB)
 	usecaseRecordsInserter := interactor.NewRecordsInserter(recordsInserter)
-	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, sqlExecutor, usecaseRecordsInserter)
+	dbConfig, err := config.NewDBConfig()
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	historyDB, cleanup2, err := config.NewHistoryDB(dbConfig)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	historyTableCreator := persistence.NewHistoryTableCreator(historyDB)
+	usecaseHistoryTableCreator := interactor.NewHistoryTableCreator(historyTableCreator)
+	historyCreator := persistence.NewHistoryCreator(historyDB)
+	usecaseHistoryCreator := interactor.NewHistoryCreator(historyCreator)
+	historyLister := persistence.NewHistoryLister(historyDB)
+	usecaseHistoryLister := interactor.NewHistoryLister(historyLister)
+	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig)
 	return tuiTUI, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

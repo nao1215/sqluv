@@ -2,7 +2,10 @@ package tui
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/nao1215/sqluv/config"
@@ -27,20 +30,29 @@ type (
 	dbmsUsecases struct {
 		queryExecutor usecase.QueryExecutor
 		tablesGetter  usecase.TablesGetter
+
+		closeDB       func() // Added field for database cleanup function
+		isDBConnected bool   // Flag to track if we're connected to a database
+		databaseName  string // Name of the connected database
+	}
+
+	// historyUsecases represents use cases for history operations
+	historyUsecases struct {
+		historyTableCreator usecase.HistoryTableCreator
+		historyCreator      usecase.HistoryCreator
+		historyLister       usecase.HistoryLister
 	}
 )
 
 // TUI represents a text-based user interface.
 type TUI struct {
-	files         []*model.File      // list of file paths that import to SQLite3 in-memory mode.
-	app           *tview.Application // TUI application.
-	home          *home              // home component of the TUI.
-	localUsecases *localUsecases
-	dbmsUsecases  *dbmsUsecases
-
-	closeDB       func() // Added field for database cleanup function
-	isDBConnected bool   // Flag to track if we're connected to a database
-	databaseName  string // Name of the connected database
+	files           []*model.File      // list of file paths that import to SQLite3 in-memory mode.
+	app             *tview.Application // TUI application.
+	home            *home              // home component of the TUI.
+	localUsecases   *localUsecases
+	dbmsUsecases    *dbmsUsecases
+	historyUsecases *historyUsecases
+	dbConfig        *config.DBConfig // Database configuration manager
 }
 
 // NewTUI creates a new TUI instance.
@@ -50,6 +62,10 @@ func NewTUI(
 	tableCreator usecase.TableCreator,
 	sqlExecuter usecase.SQLExecutor,
 	recordInserter usecase.RecordsInserter,
+	historyTableCreator usecase.HistoryTableCreator,
+	historyCreator usecase.HistoryCreator,
+	historyLister usecase.HistoryLister,
+	dbConfig *config.DBConfig,
 ) *TUI {
 	app := tview.NewApplication()
 	tui := &TUI{
@@ -63,12 +79,18 @@ func NewTUI(
 			recordInserter: recordInserter,
 		},
 		dbmsUsecases: &dbmsUsecases{},
+		historyUsecases: &historyUsecases{
+			historyTableCreator: historyTableCreator,
+			historyCreator:      historyCreator,
+			historyLister:       historyLister,
+		},
+		dbConfig: dbConfig,
 	}
+
 	tui.app.SetInputCapture(tui.keyBindings)
 	tui.app.SetMouseCapture(tui.mouseHandler)
 	tui.app.EnableMouse(true)
 	tui.app.EnablePaste(true)
-
 	return tui
 }
 
@@ -77,6 +99,10 @@ func (t *TUI) Run() error {
 	ctx := context.Background()
 	t.app.SetRoot(t.home.flex, true)
 	t.home.footer.setDefaulShortcut()
+
+	if err := t.historyUsecases.historyTableCreator.CreateTable(ctx); err != nil {
+		return fmt.Errorf("failed to create history table: %w", err)
+	}
 
 	if t.hasLocalFiles() {
 		if err := t.importFiles(ctx); err != nil {
@@ -94,6 +120,9 @@ func (t *TUI) Run() error {
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
 	})
+	t.home.historyButton.SetSelectedFunc(func() {
+		t.showHistoryList()
+	})
 	return t.app.Run()
 }
 
@@ -104,11 +133,6 @@ func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
 		return err
 	}
 
-	// Store the database connection for later use
-	t.databaseName = conn.Database
-	t.closeDB = closeDB
-	t.isDBConnected = true
-
 	// Initialize DBMS usecases
 	queryExecutor := persistence.NewQueryExecutor(db)
 	statementExecutor := persistence.NewStatementExecutor(db)
@@ -118,6 +142,11 @@ func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
 		queryExecutor: interactor.NewQueryExecutor(queryExecutor, statementExecutor),
 		tablesGetter:  interactor.NewTablesGetter(tablesGetter),
 	}
+
+	// Store the database connection for later use
+	t.dbmsUsecases.databaseName = conn.Database
+	t.dbmsUsecases.closeDB = closeDB
+	t.dbmsUsecases.isDBConnected = true
 
 	// Load tables and update the sidebar
 	t.loadDatabaseTables(context.Background(), conn.Database)
@@ -200,6 +229,9 @@ func (t *TUI) handleConnectionSelection(conn *config.DBConnection) {
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
 	})
+	t.home.historyButton.SetSelectedFunc(func() {
+		t.showHistoryList()
+	})
 }
 
 // showFailedConnectionDialog shows a dialog for failed connections with option to remove
@@ -270,11 +302,14 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 	case event.Key() == tcell.KeyEsc, event.Key() == tcell.KeyCtrlD:
 		t.app.Stop()
 	case event.Key() == tcell.KeyTAB:
-		// Cycle focus: queryTextArea -> executeButton -> queryResultTable -> sidebar -> queryTextArea
+		// Cycle focus: queryTextArea -> executeButton -> historyButton -> queryResultTable -> sidebar -> queryTextArea
 		if t.home.queryTextArea.HasFocus() {
 			t.app.SetFocus(t.home.executeButton)
 			return nil
 		} else if t.home.executeButton.HasFocus() {
+			t.app.SetFocus(t.home.historyButton)
+			return nil
+		} else if t.home.historyButton.HasFocus() {
 			// If there are query results, focus on result table, otherwise skip to sidebar
 			if t.hasQueryResults() {
 				t.app.SetFocus(t.home.resultTable)
@@ -290,19 +325,22 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 			return nil
 		}
 	case event.Key() == tcell.KeyBacktab: // SHIFT+TAB
-		// Reverse cycle: queryTextArea -> sidebar -> queryResultTable -> executeButton -> queryTextArea
+		// Reverse cycle: queryTextArea -> sidebar -> queryResultTable -> historyButton -> executeButton -> queryTextArea
 		if t.home.queryTextArea.HasFocus() {
 			t.app.SetFocus(t.home.sidebar)
 			return nil
 		} else if t.home.sidebar.HasFocus() {
-			// If there are query results, focus on result table, otherwise skip to execute button
+			// If there are query results, focus on result table, otherwise skip to history button
 			if t.hasQueryResults() {
 				t.app.SetFocus(t.home.resultTable)
 			} else {
-				t.app.SetFocus(t.home.executeButton)
+				t.app.SetFocus(t.home.historyButton)
 			}
 			return nil
 		} else if t.home.resultTable.HasFocus() {
+			t.app.SetFocus(t.home.historyButton)
+			return nil
+		} else if t.home.historyButton.HasFocus() {
 			t.app.SetFocus(t.home.executeButton)
 			return nil
 		} else if t.home.executeButton.HasFocus() {
@@ -321,23 +359,44 @@ func (t *TUI) executeQuery(ctx context.Context) {
 		t.showError(err)
 		return
 	}
-	if t.isDBConnected && t.dbmsUsecases.queryExecutor != nil {
-		t.executeDBMSQuery(ctx, sql, query)
+
+	if t.dbmsUsecases.isDBConnected && t.dbmsUsecases.queryExecutor != nil {
+		err = t.executeDBMSQuery(ctx, sql)
 	} else {
-		t.executeLocalQuery(ctx, sql, query)
+		err = t.executeLocalQuery(ctx, sql)
 	}
+	if err != nil {
+		t.showError(fmt.Errorf("%w: sql='%s'", err, query))
+		return
+	}
+
+	if err := t.recordUserRequest(ctx, query); err != nil {
+		t.showError(fmt.Errorf("failed to record user request: %w", err))
+		return
+	}
+}
+
+// recordUserRequest record user request in DB.
+func (t *TUI) recordUserRequest(ctx context.Context, request string) error {
+	histories, err := t.historyUsecases.historyLister.List(ctx)
+	if err != nil {
+		return err
+	}
+	if err := t.historyUsecases.historyCreator.Create(ctx, model.NewHistory(len(histories)+1, request)); err != nil {
+		return fmt.Errorf("failed to store user input history: %w", err)
+	}
+	return nil
 }
 
 // executeDBMSQuery executes SQL query against connected DBMS
-func (t *TUI) executeDBMSQuery(ctx context.Context, sql *model.SQL, rawQuery string) {
+func (t *TUI) executeDBMSQuery(ctx context.Context, sql *model.SQL) error {
 	output, err := t.dbmsUsecases.queryExecutor.ExecuteQuery(ctx, sql)
 	if err != nil {
-		t.showError(fmt.Errorf("%w: sql='%s'", err, rawQuery))
-		return
+		return err
 	}
 
 	if sql.IsDDL() {
-		t.loadDatabaseTables(ctx, t.databaseName)
+		t.loadDatabaseTables(ctx, t.dbmsUsecases.databaseName)
 	}
 	if sql.IsUpdate() {
 		t.showRowsAffectedInfo(output.RowsAffected())
@@ -345,14 +404,14 @@ func (t *TUI) executeDBMSQuery(ctx context.Context, sql *model.SQL, rawQuery str
 	if output.HasTable() || sql.IsDelete() {
 		t.home.resultTable.update(output.Table())
 	}
+	return nil
 }
 
 // executeLocalQuery executes SQL query against local file data
-func (t *TUI) executeLocalQuery(ctx context.Context, sql *model.SQL, rawQuery string) {
+func (t *TUI) executeLocalQuery(ctx context.Context, sql *model.SQL) error {
 	output, err := t.localUsecases.sqlExecutor.ExecuteSQL(ctx, sql)
 	if err != nil {
-		t.showError(fmt.Errorf("%w: sql='%s'", err, rawQuery))
-		return
+		return err
 	}
 
 	if sql.IsUpdate() {
@@ -361,6 +420,7 @@ func (t *TUI) executeLocalQuery(ctx context.Context, sql *model.SQL, rawQuery st
 	if output.HasTable() || sql.IsDelete() {
 		t.home.resultTable.update(output.Table())
 	}
+	return nil
 }
 
 // showRowsAffectedInfo displays information about rows affected by a DML operation
@@ -403,7 +463,7 @@ func (t *TUI) mouseHandler(event *tcell.EventMouse, action tview.MouseAction) (*
 
 // loadDatabaseTables fetches tables from the database and updates the sidebar
 func (t *TUI) loadDatabaseTables(ctx context.Context, dbName string) {
-	if !t.isDBConnected || t.dbmsUsecases.tablesGetter == nil {
+	if !t.dbmsUsecases.isDBConnected || t.dbmsUsecases.tablesGetter == nil {
 		return
 	}
 
@@ -416,4 +476,63 @@ func (t *TUI) loadDatabaseTables(ctx context.Context, dbName string) {
 
 	// Update the sidebar with the tables
 	t.home.sidebar.updateTables(tables, dbName)
+}
+
+// showHistoryList displays a list of SQL query history and allows selection
+func (t *TUI) showHistoryList() {
+	ctx := context.Background()
+
+	// Get history from the database
+	histories, err := t.historyUsecases.historyLister.List(ctx)
+	if err != nil {
+		t.showError(fmt.Errorf("failed to load history: %w", err))
+		return
+	}
+
+	if len(histories) == 0 {
+		t.showError(errors.New("no query history available"))
+		return
+	}
+
+	// Create a list to display history items
+	list := tview.NewList()
+	list.SetTitle("SQL Query History").SetBorder(true)
+
+	// Add history items to the list in reverse order (newest first)
+	for i := len(histories) - 1; i >= 0; i-- {
+		history := histories[i]
+		displayText := normalizeSpaces(history.Request)
+		if len(displayText) > 75 {
+			displayText = displayText[:71] + "..."
+		}
+
+		// Use a closure to capture the correct history item
+		func(h model.History) {
+			list.AddItem(displayText, "", 0, func() {
+				// Set the selected history item text in the query text area
+				t.home.queryTextArea.SetText(h.Request, true)
+				t.app.SetRoot(t.home.flex, true)
+				t.app.SetFocus(t.home.queryTextArea)
+			})
+		}(history)
+	}
+
+	// Add a "Cancel" button at the bottom
+	list.AddItem("Cancel", "Return without selecting history", '*', func() {
+		t.app.SetRoot(t.home.flex, true)
+		t.app.SetFocus(t.home.queryTextArea)
+	})
+
+	// Show the list
+	t.app.SetRoot(list, true)
+	t.app.SetFocus(list)
+}
+
+var spaceRegex = regexp.MustCompile(`\s+`)
+
+func normalizeSpaces(input string) string {
+	input = strings.ReplaceAll(input, "\r\n", " ")
+	input = strings.ReplaceAll(input, "\n", " ")
+	input = spaceRegex.ReplaceAllString(input, " ")
+	return strings.TrimSpace(input)
 }

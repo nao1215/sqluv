@@ -10,4 +10,7 @@ var Set = wire.NewSet(
 	NewCSVReader,
 	NewTSVReader,
 	NewLTSVReader,
+	NewHistoryTableCreator,
+	NewHistoryCreator,
+	NewHistoryLister,
 )

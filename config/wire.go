@@ -7,4 +7,6 @@ import "github.com/google/wire"
 // Set is config providers.
 var Set = wire.NewSet(
 	NewMemoryDB,
+	NewDBConfig,
+	NewHistoryDB,
 )
