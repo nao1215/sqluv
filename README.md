@@ -78,7 +78,10 @@ If you start the sqluv command without specifying a file path, it will enter DBM
 | Key | Description |
 | --- | --- |
 | ESC | Quit |
-| Ctrl + D | Quit |
+| Ctrl + d | Quit |
+| Ctrl + c | Copy the selected sql query |
+| Ctrl + v | Paste the copied text |
+| Ctrl + x | Cut the selected text |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
 
