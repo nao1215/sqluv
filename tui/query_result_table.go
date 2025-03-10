@@ -22,7 +22,6 @@ func newQueryResultTable() *queryResultTable {
 		SetBorder(false)
 
 	table.SetFixed(1, 0)
-	table.SetSelectable(true, true)
 
 	table.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDefault))
 	queryResultTable := &queryResultTable{
@@ -48,14 +47,10 @@ func newQueryResultTable() *queryResultTable {
 // After calling this method, the table will be empty and display an empty state message.
 func (q *queryResultTable) clear() {
 	q.Clear()
-	q.SetCell(0, 0, tview.NewTableCell("No query results to display").
-		SetTextColor(tcell.ColorDefault).
-		SetAlign(tview.AlignCenter).
-		SetExpansion(1))
 }
 
 // update updates the table with model.Table data
-func (q *queryResultTable) update(table *model.Table) {
+func (q *queryResultTable) update(table *model.Table, stats *rowStatistics, executionTime float64) {
 	if table == nil {
 		q.clear()
 		return
@@ -82,10 +77,14 @@ func (q *queryResultTable) update(table *model.Table) {
 					SetTextColor(tcell.ColorWhite).
 					SetAlign(tview.AlignLeft).
 					SetMaxWidth(q.calcMaxWidth(table)).
+					SetSelectable(true).
 					SetExpansion(1))
 		}
 	}
 	q.ScrollToBeginning()
+
+	// Set up row selection handling with the updated execution time
+	q.setupRowSelectionHandling(stats, executionTime)
 }
 
 // calcMaxWidth calculates the maximum width of the table.
@@ -99,4 +98,26 @@ func (q *queryResultTable) calcMaxWidth(table *model.Table) int {
 		colWidth = (w - columnCount - 1) / columnCount // Account for borders
 	}
 	return colWidth
+}
+
+// Update the setupRowSelectionHandling function to track cell position
+func (q *queryResultTable) setupRowSelectionHandling(stats *rowStatistics, executionTime float64) {
+	q.SetSelectable(true, true) // Allow both row and column selection
+
+	// Update selection handler to pass both row and column information
+	q.SetSelectedFunc(func(row, col int) {
+		// Don't count header row (row 0) as a data row
+		if row > 0 {
+			totalRows := q.GetRowCount() - 1 // Subtract 1 for header row
+			stats.updateSelectedCell(row-1, col, totalRows, executionTime)
+		}
+	})
+
+	// Add handler for when selection changes without clicking
+	q.SetSelectionChangedFunc(func(row, col int) {
+		if row > 0 {
+			totalRows := q.GetRowCount() - 1
+			stats.updateSelectedCell(row-1, col, totalRows, executionTime)
+		}
+	})
 }

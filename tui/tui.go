@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/nao1215/sqluv/config"
@@ -53,6 +54,8 @@ type TUI struct {
 	dbmsUsecases    *dbmsUsecases
 	historyUsecases *historyUsecases
 	dbConfig        *config.DBConfig // Database configuration manager
+
+	lastExecutionTime float64 // Time taken to execute the last query
 }
 
 // NewTUI creates a new TUI instance.
@@ -390,6 +393,7 @@ func (t *TUI) recordUserRequest(ctx context.Context, request string) error {
 
 // executeDBMSQuery executes SQL query against connected DBMS
 func (t *TUI) executeDBMSQuery(ctx context.Context, sql *model.SQL) error {
+	startTime := time.Now()
 	output, err := t.dbmsUsecases.queryExecutor.ExecuteQuery(ctx, sql)
 	if err != nil {
 		return err
@@ -402,13 +406,16 @@ func (t *TUI) executeDBMSQuery(ctx context.Context, sql *model.SQL) error {
 		t.showRowsAffectedInfo(output.RowsAffected())
 	}
 	if output.HasTable() || sql.IsDelete() {
-		t.home.resultTable.update(output.Table())
+		t.lastExecutionTime = time.Since(startTime).Seconds()
+		t.home.resultTable.update(output.Table(), t.home.rowStatistics, t.lastExecutionTime)
+		t.updateRowStatistics(output.Table(), startTime)
 	}
 	return nil
 }
 
 // executeLocalQuery executes SQL query against local file data
 func (t *TUI) executeLocalQuery(ctx context.Context, sql *model.SQL) error {
+	startTime := time.Now()
 	output, err := t.localUsecases.sqlExecutor.ExecuteSQL(ctx, sql)
 	if err != nil {
 		return err
@@ -418,7 +425,9 @@ func (t *TUI) executeLocalQuery(ctx context.Context, sql *model.SQL) error {
 		t.showRowsAffectedInfo(output.RowsAffected())
 	}
 	if output.HasTable() || sql.IsDelete() {
-		t.home.resultTable.update(output.Table())
+		t.lastExecutionTime = time.Since(startTime).Seconds()
+		t.home.resultTable.update(output.Table(), t.home.rowStatistics, t.lastExecutionTime)
+		t.updateRowStatistics(output.Table(), startTime)
 	}
 	return nil
 }
@@ -535,4 +544,17 @@ func normalizeSpaces(input string) string {
 	input = strings.ReplaceAll(input, "\n", " ")
 	input = spaceRegex.ReplaceAllString(input, " ")
 	return strings.TrimSpace(input)
+}
+
+// updateRowStatistics updates the row statistics component with the result information
+func (t *TUI) updateRowStatistics(table *model.Table, startTime time.Time) {
+	if table == nil {
+		t.home.rowStatistics.clear()
+		return
+	}
+
+	t.lastExecutionTime = time.Since(startTime).Seconds()
+	rowCount := len(table.Records())
+	// Use -1 for row and column to indicate no selection yet
+	t.home.rowStatistics.updateSelectedCell(-1, -1, rowCount, t.lastExecutionTime)
 }

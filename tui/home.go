@@ -12,6 +12,7 @@ type home struct {
 	resultTable   *queryResultTable
 	footer        *footer
 	errorDialog   *errorDialog
+	rowStatistics *rowStatistics
 }
 
 // newHome creates a new home window.
@@ -22,6 +23,7 @@ func newHome(app *tview.Application) *home {
 	historyButton := newHistoryButton()
 	resultTableComponent := newQueryResultTable()
 	footerComponent := newFooter()
+	rowStatisticsComponent := newRowStatistics()
 
 	buttonPanel := tview.NewFlex().
 		AddItem(executeButton, 0, 1, false).
@@ -32,7 +34,8 @@ func newHome(app *tview.Application) *home {
 		SetDirection(tview.FlexRow).
 		AddItem(textArea, 6, 0, true).
 		AddItem(buttonPanel, 1, 0, false).
-		AddItem(resultTableComponent, 0, 1, false)
+		AddItem(resultTableComponent, 0, 1, false).
+		AddItem(rowStatisticsComponent, 1, 0, false)
 
 	// Main content with sidebar and right panel (horizontal layout)
 	mainContent := tview.NewFlex().
@@ -54,5 +57,6 @@ func newHome(app *tview.Application) *home {
 		resultTable:   resultTableComponent,
 		errorDialog:   newErrorDialog(app),
 		footer:        footerComponent,
+		rowStatistics: rowStatisticsComponent,
 	}
 }
