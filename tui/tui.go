@@ -54,6 +54,7 @@ type TUI struct {
 	dbmsUsecases    *dbmsUsecases
 	historyUsecases *historyUsecases
 	dbConfig        *config.DBConfig // Database configuration manager
+	theme           *Theme
 
 	lastExecutionTime float64 // Time taken to execute the last query
 }
@@ -69,11 +70,14 @@ func NewTUI(
 	historyCreator usecase.HistoryCreator,
 	historyLister usecase.HistoryLister,
 	dbConfig *config.DBConfig,
+	colorManager *config.ColorConfig,
 ) *TUI {
 	app := tview.NewApplication()
+	theme := NewTheme(colorManager, app)
+
 	tui := &TUI{
 		files: arg.Files(),
-		home:  newHome(app),
+		home:  newHome(app, theme),
 		app:   app,
 		localUsecases: &localUsecases{
 			fileReader:     fileReader,
@@ -88,12 +92,15 @@ func NewTUI(
 			historyLister:       historyLister,
 		},
 		dbConfig: dbConfig,
+		theme:    theme,
 	}
 
 	tui.app.SetInputCapture(tui.keyBindings)
 	tui.app.SetMouseCapture(tui.mouseHandler)
 	tui.app.EnableMouse(true)
 	tui.app.EnablePaste(true)
+
+	tui.home.applyTheme(theme)
 	return tui
 }
 
@@ -114,7 +121,7 @@ func (t *TUI) Run() error {
 			return t.app.Run()
 		}
 	} else {
-		connectionModal := newConnectionModal(t.app, t.handleConnectionSelection)
+		connectionModal := newConnectionModal(t.app, t.theme, t.handleConnectionSelection)
 		t.app.SetRoot(connectionModal.Modal, true)
 		return t.app.Run()
 	}
@@ -126,6 +133,7 @@ func (t *TUI) Run() error {
 	t.home.historyButton.SetSelectedFunc(func() {
 		t.showHistoryList()
 	})
+	t.refreshAllComponents()
 	return t.app.Run()
 }
 
@@ -247,7 +255,7 @@ func (t *TUI) showFailedConnectionDialog(conn *config.DBConnection, err error) {
 				t.removeConnectionFromConfig(conn.Name)
 			}
 			// Return to the connection modal
-			connectionModal := newConnectionModal(t.app, t.handleConnectionSelection)
+			connectionModal := newConnectionModal(t.app, t.theme, t.handleConnectionSelection)
 			t.app.SetRoot(connectionModal.Modal, true)
 		})
 	t.app.SetRoot(errorModal, true)
@@ -350,6 +358,14 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 			t.app.SetFocus(t.home.queryTextArea)
 			return nil
 		}
+
+	case event.Key() == tcell.KeyCtrlT:
+		t.theme.ShowColorSchemeSelector(func() {
+			t.app.SetRoot(t.home.flex, true)
+			t.app.SetFocus(t.home.queryTextArea)
+			t.refreshAllComponents()
+		})
+		return nil
 	}
 	return event
 }
@@ -557,4 +573,9 @@ func (t *TUI) updateRowStatistics(table *model.Table, startTime time.Time) {
 	rowCount := len(table.Records())
 	// Use -1 for row and column to indicate no selection yet
 	t.home.rowStatistics.updateSelectedCell(-1, -1, rowCount, t.lastExecutionTime)
+}
+
+// refreshAllComponents new method to refresh all components with the current theme
+func (t *TUI) refreshAllComponents() {
+	t.home.applyTheme(t.theme)
 }

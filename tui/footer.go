@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -9,18 +8,24 @@ import (
 type footer struct {
 	*tview.TextView
 	shortcuts map[string]string // key=shortcut, value=description
+	theme     *Theme
 }
 
 // newFooter creates a new footer with keyboard shortcuts
-func newFooter() *footer {
+func newFooter(theme *Theme) *footer {
 	textView := tview.NewTextView().
 		SetDynamicColors(true).
-		SetTextAlign(tview.AlignLeft).
-		SetTextColor(tcell.ColorDefault)
+		SetTextAlign(tview.AlignLeft)
+
+	// Apply theme colors instead of hardcoded ones
+	colors := theme.GetColors()
+	textView.SetTextColor(colors.Foreground)
+	textView.SetBackgroundColor(colors.Background)
 
 	footer := &footer{
 		TextView:  textView,
 		shortcuts: make(map[string]string),
+		theme:     theme, // Store theme reference
 	}
 	return footer
 }
@@ -41,13 +46,17 @@ func (f *footer) clearShortcuts() {
 func (f *footer) update() {
 	f.Clear()
 
+	colors := f.theme.GetColors()
+
 	// Build shortcuts text with formatting
 	text := ""
 	for key, description := range f.shortcuts {
 		if text != "" {
 			text += " | "
 		}
-		text += "[yellow]" + key + "[white]: " + description
+		// Use the header color from theme for shortcuts
+		text += "[" + colors.Header.String() + "]" + key +
+			"[" + colors.Foreground.String() + "]: " + description
 	}
 	f.SetText(text)
 }
@@ -58,5 +67,20 @@ func (f *footer) setDefaulShortcut() {
 	f.addShortcut("Ctrl-D", "Quit")
 	f.addShortcut("Esc", "Quit")
 	f.addShortcut("TAB", "Change focus")
+	f.addShortcut("Ctrl-T", "Theme selector")
 	f.update()
+}
+
+func (f *footer) applyTheme(theme *Theme) {
+	f.theme = theme
+	colors := theme.GetColors()
+	f.SetBackgroundColor(colors.Background)
+
+	f.update()
+
+	if f.HasFocus() {
+		f.SetBorderColor(colors.BorderFocus)
+	} else {
+		f.SetBorderColor(colors.Border)
+	}
 }

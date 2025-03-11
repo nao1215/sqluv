@@ -8,5 +8,6 @@ import "github.com/google/wire"
 var Set = wire.NewSet(
 	NewMemoryDB,
 	NewDBConfig,
+	NewColorManager,
 	NewHistoryDB,
 )
