@@ -1,6 +1,6 @@
 ![dbms_demo](doc/image/dbms_demo.gif)
 
-The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local files.
+The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local files. The sqluv has the color theme feature, so you can change the color theme to your liking.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
@@ -82,8 +82,50 @@ If you start the sqluv command without specifying a file path, it will enter DBM
 | Ctrl + c | Copy the selected sql query |
 | Ctrl + v | Paste the copied text |
 | Ctrl + x | Cut the selected text |
+| Ctrl + t | Change the theme |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
+
+## Color theme
+
+### Defaulut
+![color_default](./doc/image/color_default.png)
+
+### Sublime
+![color_sublime](./doc/image/color_sublime.png)
+
+### VS Code
+![color_vscode](./doc/image/color_vscode.png)
+
+### Atom
+![color_atom](./doc/image/color_atom.png)
+
+### Dark
+![color_dark](./doc/image/color_dark.png)
+
+### Light
+![color_light](./doc/image/color_light.png)
+
+### Solarized
+![color_solarized](./doc/image/color_solarized.png)
+
+### Monokai
+![color_monokai](./doc/image/color_monokai.png)
+
+### Nord
+![color_nord](./doc/image/color_nord.png)
+
+### Cappuccino
+![color_cappuccino](./doc/image/color_cappuccino.png)
+
+### Gruvbox
+![color_gruvbox](./doc/image/color_gruvbox.png)
+
+### Tokyo Night
+![color_tokyo_night](./doc/image/color_tokyo_night.png)
+
+### Dracula
+![color_dracula](./doc/image/color_dracula.png)
 
 ## Altenative Tools
 
