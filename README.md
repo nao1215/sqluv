@@ -94,6 +94,38 @@ If you start the sqluv command without specifying a file path, it will enter DBM
 ### Sublime
 ![color_sublime](./doc/image/color_sublime.png)
 
+### VS Code
+![color_vscode](./doc/image/color_vscode.png)
+
+### Atom
+![color_atom](./doc/image/color_atom.png)
+
+### Dark
+![color_dark](./doc/image/color_dark.png)
+
+### Light
+![color_light](./doc/image/color_light.png)
+
+### Solarized
+![color_solarized](./doc/image/color_solarized.png)
+
+### Monokai
+![color_monokai](./doc/image/color_monokai.png)
+
+### Nord
+![color_nord](./doc/image/color_nord.png)
+
+### Cappuccino
+![color_cappuccino](./doc/image/color_cappuccino.png)
+
+### Gruvbox
+![color_gruvbox](./doc/image/color_gruvbox.png)
+
+### Tokyo Night
+![color_tokyo_night](./doc/image/color_tokyo_night.png)
+
+### Dracula
+![color_dracula](./doc/image/color_dracula.png)
 
 ## Altenative Tools
 
