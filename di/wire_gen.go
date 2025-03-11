@@ -49,7 +49,13 @@ func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
 	usecaseHistoryCreator := interactor.NewHistoryCreator(historyCreator)
 	historyLister := persistence.NewHistoryLister(historyDB)
 	usecaseHistoryLister := interactor.NewHistoryLister(historyLister)
-	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig)
+	colorConfig, err := config.NewColorManager()
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
 	return tuiTUI, func() {
 		cleanup2()
 		cleanup()

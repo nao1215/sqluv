@@ -12,7 +12,7 @@ type rowStatistics struct {
 }
 
 // newRowStatistics creates a new row statistics component
-func newRowStatistics() *rowStatistics {
+func newRowStatistics(theme *Theme) *rowStatistics {
 	textView := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
 		SetDynamicColors(true)
@@ -49,4 +49,15 @@ func (r *rowStatistics) updateSelectedCell(selectedRow, selectedCol int, totalRo
 			selectedRow+1, selectedCol+1, totalRows, executionTime)
 	}
 	r.SetText(text)
+}
+
+func (r *rowStatistics) applyTheme(theme *Theme) {
+	colors := theme.GetColors()
+	r.SetBackgroundColor(colors.Background)
+
+	if r.HasFocus() {
+		r.SetBorderColor(colors.BorderFocus)
+	} else {
+		r.SetBorderColor(colors.Border)
+	}
 }

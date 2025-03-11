@@ -9,10 +9,11 @@ import (
 // queryTextArea represents a query input field.
 type queryTextArea struct {
 	*tview.TextArea
+	theme *Theme
 }
 
 // newQueryTextArea creates a new query input field.
-func newQueryTextArea() *queryTextArea {
+func newQueryTextArea(theme *Theme) *queryTextArea {
 	textArea := tview.NewTextArea().
 		SetPlaceholder("Enter SQL query here...")
 
@@ -20,13 +21,10 @@ func newQueryTextArea() *queryTextArea {
 		SetTitle("Query").
 		SetTitleAlign(tview.AlignLeft)
 
-	textArea.SetFocusFunc(func() {
-		textArea.SetBorderColor(tcell.ColorGreen)
-	})
-
-	textArea.SetBlurFunc(func() {
-		textArea.SetBorderColor(tcell.ColorDefault)
-	})
+	colors := theme.GetColors()
+	textArea.SetBackgroundColor(colors.Background)
+	textArea.SetTitleColor(colors.Foreground)
+	textArea.SetBorderColor(colors.Border)
 
 	// Add keyboard shortcut handling for copy/paste
 	textArea.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -69,7 +67,32 @@ func newQueryTextArea() *queryTextArea {
 		return event // Pass other keys through
 	})
 
-	return &queryTextArea{
+	q := &queryTextArea{
 		TextArea: textArea,
+		theme:    theme,
+	}
+	q.applyTheme(theme)
+	return q
+}
+
+func (q *queryTextArea) applyTheme(theme *Theme) {
+	q.theme = theme
+	colors := theme.GetColors()
+
+	// Update all text area colors
+	q.SetBackgroundColor(colors.Background)
+	q.SetTitleColor(colors.Foreground)
+	q.SetTextStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
+	q.SetPlaceholderStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
+
+	// Update border color based on focus state
+	if q.HasFocus() {
+		q.SetBorderColor(colors.BorderFocus)
+	} else {
+		q.SetBorderColor(colors.Border)
 	}
 }

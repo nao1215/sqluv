@@ -16,14 +16,14 @@ type home struct {
 }
 
 // newHome creates a new home window.
-func newHome(app *tview.Application) *home {
-	sidebarComponent := newSidebar()
-	textArea := newQueryTextArea()
-	executeButton := newExecuteButton()
-	historyButton := newHistoryButton()
-	resultTableComponent := newQueryResultTable()
-	footerComponent := newFooter()
-	rowStatisticsComponent := newRowStatistics()
+func newHome(app *tview.Application, theme *Theme) *home {
+	sidebarComponent := newSidebar(theme)
+	textArea := newQueryTextArea(theme)
+	executeButton := newExecuteButton(theme)
+	historyButton := newHistoryButton(theme)
+	resultTableComponent := newQueryResultTable(theme)
+	footerComponent := newFooter(theme)
+	rowStatisticsComponent := newRowStatistics(theme)
 
 	buttonPanel := tview.NewFlex().
 		AddItem(executeButton, 0, 1, false).
@@ -55,8 +55,25 @@ func newHome(app *tview.Application) *home {
 		executeButton: executeButton,
 		historyButton: historyButton,
 		resultTable:   resultTableComponent,
-		errorDialog:   newErrorDialog(app),
+		errorDialog:   newErrorDialog(app, theme),
 		footer:        footerComponent,
 		rowStatistics: rowStatisticsComponent,
 	}
+}
+
+// applyTheme applies the current theme to all components
+func (h *home) applyTheme(theme *Theme) {
+	// Apply theme to the flex container itself
+	colors := theme.GetColors()
+	h.flex.SetBackgroundColor(colors.Background)
+
+	// Update each component with the theme
+	h.sidebar.applyTheme(theme)
+	h.queryTextArea.applyTheme(theme)
+	h.executeButton.applyTheme(theme)
+	h.historyButton.applyTheme(theme)
+	h.resultTable.applyTheme(theme)
+	h.footer.applyTheme(theme)
+	h.rowStatistics.applyTheme(theme)
+	h.errorDialog.applyTheme(theme)
 }

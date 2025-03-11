@@ -9,10 +9,11 @@ import (
 // queryResultTable represents a table that displays SQL query results.
 type queryResultTable struct {
 	*tview.Table
+	theme *Theme
 }
 
 // newQueryResultTable creates a new query result table.
-func newQueryResultTable() *queryResultTable {
+func newQueryResultTable(theme *Theme) *queryResultTable {
 	table := tview.NewTable().
 		SetBorders(true).
 		SetSelectable(true, true)
@@ -20,23 +21,36 @@ func newQueryResultTable() *queryResultTable {
 	table.SetTitle("Results").
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(false)
-
 	table.SetFixed(1, 0)
 
-	table.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDefault))
+	// Use theme colors instead of hardcoded colors
+	colors := theme.GetColors()
+	table.SetTitleColor(colors.Foreground)
+	table.SetBackgroundColor(colors.Background)
+	table.SetSelectedStyle(tcell.StyleDefault.
+		Background(colors.Selection).
+		Foreground(colors.SelectionText))
+
 	queryResultTable := &queryResultTable{
 		Table: table,
+		theme: theme,
 	}
 
 	queryResultTable.SetFocusFunc(func() {
 		queryResultTable.SetBorder(false)
-		queryResultTable.SetBorderColor(tcell.ColorGreen)
-		queryResultTable.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorGreen).Foreground(tcell.ColorBlack))
+		colors := theme.GetColors() // Get fresh colors in case theme changed
+		queryResultTable.SetBorderColor(colors.BorderFocus)
+		queryResultTable.SetSelectedStyle(tcell.StyleDefault.
+			Background(colors.Selection).
+			Foreground(colors.SelectionText))
 	})
 
 	queryResultTable.SetBlurFunc(func() {
-		queryResultTable.SetBorderColor(tcell.ColorDefault)
-		queryResultTable.SetSelectedStyle(tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDefault))
+		colors := theme.GetColors() // Get fresh colors in case theme changed
+		queryResultTable.SetBorderColor(colors.Border)
+		queryResultTable.SetSelectedStyle(tcell.StyleDefault.
+			Background(colors.Background).
+			Foreground(colors.Foreground))
 	})
 
 	queryResultTable.clear()
@@ -57,11 +71,14 @@ func (q *queryResultTable) update(table *model.Table, stats *rowStatistics, exec
 	}
 	q.Clear()
 
+	// Get theme colors for consistent styling
+	colors := q.theme.GetColors() // We need to store the theme in queryResultTable
+
 	// Set column widths and headers
 	for i, col := range table.Header() {
 		q.SetCell(0, i,
 			tview.NewTableCell(col).
-				SetTextColor(tcell.ColorYellow).
+				SetTextColor(colors.Header). // Use theme Header color
 				SetSelectable(false).
 				SetAlign(tview.AlignCenter).
 				SetMaxWidth(q.calcMaxWidth(table)).
@@ -74,7 +91,7 @@ func (q *queryResultTable) update(table *model.Table, stats *rowStatistics, exec
 		for colIdx, cell := range row {
 			q.SetCell(rowIdx+1, colIdx,
 				tview.NewTableCell(cell).
-					SetTextColor(tcell.ColorWhite).
+					SetTextColor(colors.Foreground). // Use theme Foreground color
 					SetAlign(tview.AlignLeft).
 					SetMaxWidth(q.calcMaxWidth(table)).
 					SetSelectable(true).
@@ -120,4 +137,32 @@ func (q *queryResultTable) setupRowSelectionHandling(stats *rowStatistics, execu
 			stats.updateSelectedCell(row-1, col, totalRows, executionTime)
 		}
 	})
+}
+
+func (q *queryResultTable) applyTheme(theme *Theme) {
+	q.theme = theme
+	colors := theme.GetColors()
+	q.SetBackgroundColor(colors.Background)
+
+	// Apply header row styling
+	for i := 0; i < q.GetColumnCount(); i++ {
+		cell := q.GetCell(0, i)
+		if cell != nil {
+			cell.SetTextColor(colors.Header)
+			cell.SetBackgroundColor(colors.Background)
+		}
+	}
+
+	// Update selection style
+	if q.HasFocus() {
+		q.SetBorderColor(colors.BorderFocus)
+		q.SetSelectedStyle(tcell.StyleDefault.
+			Background(colors.Selection).
+			Foreground(colors.SelectionText))
+	} else {
+		q.SetBorderColor(colors.Border)
+		q.SetSelectedStyle(tcell.StyleDefault.
+			Background(colors.Background).
+			Foreground(colors.Foreground))
+	}
 }

@@ -11,27 +11,44 @@ type historyButton struct {
 }
 
 // newHistoryButton creates a new history button
-func newHistoryButton() *historyButton {
+func newHistoryButton(theme *Theme) *historyButton {
 	button := tview.NewButton("History")
 	button.SetBorder(false)
 	button.SetTitle("Show SQL Query History")
 
-	// Set text colors for better visibility
-	button.SetLabelColor(tcell.ColorWhite)
-	button.SetLabelColorActivated(tcell.ColorBlack)
-	button.SetBackgroundColorActivated(tcell.ColorGreen)
-
 	button.SetFocusFunc(func() {
-		button.SetBorderColor(tcell.ColorBlue)
-		button.SetLabelColor(tcell.ColorBlack)
-		button.SetBackgroundColor(tcell.ColorLightGray)
+		button.SetBorderColor(theme.GetColors().BorderFocus)
+		button.SetLabelColor(theme.GetColors().ButtonTextFocus)
+		button.SetBackgroundColor(theme.GetColors().ButtonFocus)
 	})
 
 	button.SetBlurFunc(func() {
-		button.SetBorderColor(tcell.ColorDefault)
-		button.SetLabelColor(tcell.ColorWhite)
-		button.SetBackgroundColor(tcell.ColorDefault)
+		button.SetBorderColor(theme.GetColors().Border)
+		button.SetLabelColor(theme.GetColors().ButtonText)
+		button.SetBackgroundColor(theme.GetColors().Button)
 	})
 
-	return &historyButton{Button: button}
+	h := &historyButton{Button: button}
+	h.applyTheme(theme)
+
+	return h
+}
+
+func (h *historyButton) applyTheme(theme *Theme) {
+	colors := theme.GetColors()
+
+	h.SetBackgroundColor(colors.Button)
+	h.SetLabelColor(colors.ButtonText)
+	h.SetLabelColorActivated(colors.ButtonTextFocus)
+	h.SetBackgroundColorActivated(colors.ButtonFocus)
+
+	h.SetStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+
+	if h.HasFocus() {
+		h.SetBorderColor(colors.BorderFocus)
+	} else {
+		h.SetBorderColor(colors.Border)
+	}
 }

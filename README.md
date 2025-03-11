@@ -1,6 +1,6 @@
 ![dbms_demo](doc/image/dbms_demo.gif)
 
-The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local files.
+The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local files. The sqluv has the color theme feature, so you can change the color theme to your liking.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
@@ -82,8 +82,18 @@ If you start the sqluv command without specifying a file path, it will enter DBM
 | Ctrl + c | Copy the selected sql query |
 | Ctrl + v | Paste the copied text |
 | Ctrl + x | Cut the selected text |
+| Ctrl + t | Change the theme |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
+
+## Color theme
+
+### Defaulut
+![color_default](./doc/image/color_default.png)
+
+### Sublime
+![color_sublime](./doc/image/color_sublime.png)
+
 
 ## Altenative Tools
 

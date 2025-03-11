@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -13,19 +12,21 @@ type errorDialog struct {
 }
 
 // newErrorDialog creates a new error dialog
-func newErrorDialog(app *tview.Application) *errorDialog {
+func newErrorDialog(app *tview.Application, theme *Theme) *errorDialog {
 	modal := tview.NewModal()
-	modal.SetBorder(true).
-		SetBorderColor(tcell.ColorRed).
-		SetTitleColor(tcell.ColorRed).
-		SetTitleAlign(tview.AlignCenter).
-		SetTitle(" ERROR ")
-
-	return &errorDialog{
+	errorDialog := &errorDialog{
 		Modal:        modal,
 		app:          app,
 		previousPage: nil,
 	}
+
+	// Initial styling - will be properly themed later
+	modal.SetBorder(true).
+		SetTitleAlign(tview.AlignCenter).
+		SetTitle(" ERROR ")
+
+	errorDialog.applyTheme(theme)
+	return errorDialog
 }
 
 // Show displays the error dialog with the given message
@@ -41,4 +42,15 @@ func (d *errorDialog) Show(previousPage tview.Primitive, errorMsg string) {
 		})
 	d.app.SetRoot(d.Modal, true)
 	d.app.SetFocus(d.Modal)
+}
+
+func (d *errorDialog) applyTheme(theme *Theme) {
+	colors := theme.GetColors()
+	d.SetBorderColor(colors.BorderFocus)
+	d.SetTextColor(colors.Foreground)
+	d.SetBackgroundColor(colors.Background)
+	d.SetTitleColor(colors.BorderFocus)
+
+	d.SetButtonBackgroundColor(colors.Button)
+	d.SetButtonTextColor(colors.ButtonText)
 }
