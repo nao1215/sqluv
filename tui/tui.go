@@ -127,6 +127,8 @@ func (t *TUI) Run() error {
 	}
 
 	t.app.SetFocus(t.home.queryTextArea)
+	t.home.queryTextArea.applyTheme(t.theme)
+
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
 	})
@@ -165,6 +167,8 @@ func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
 	// Successfully connected to the database
 	t.app.SetRoot(t.home.flex, true)
 	t.app.SetFocus(t.home.queryTextArea)
+	t.home.queryTextArea.applyTheme(t.theme)
+
 	return nil
 }
 
@@ -237,6 +241,8 @@ func (t *TUI) handleConnectionSelection(conn *config.DBConnection) {
 	}
 
 	t.app.SetFocus(t.home.queryTextArea)
+	t.home.queryTextArea.applyTheme(t.theme)
+
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
 	})

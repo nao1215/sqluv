@@ -21,11 +21,6 @@ func newQueryTextArea(theme *Theme) *queryTextArea {
 		SetTitle("Query").
 		SetTitleAlign(tview.AlignLeft)
 
-	colors := theme.GetColors()
-	textArea.SetBackgroundColor(colors.Background)
-	textArea.SetTitleColor(colors.Foreground)
-	textArea.SetBorderColor(colors.Border)
-
 	// Add keyboard shortcut handling for copy/paste
 	textArea.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// Check for Ctrl+C (copy)
