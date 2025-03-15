@@ -15,7 +15,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	go.uber.org/mock v0.5.0
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.36.0
+	modernc.org/sqlite v1.36.1
 )
 
 require (
