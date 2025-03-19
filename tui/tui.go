@@ -23,6 +23,7 @@ type (
 	localUsecases struct {
 		fileReader     usecase.FileReader
 		tableCreator   usecase.TableCreator
+		tablesGetter   usecase.TablesGetter
 		sqlExecutor    usecase.SQLExecutor
 		recordInserter usecase.RecordsInserter
 	}
@@ -64,6 +65,7 @@ func NewTUI(
 	arg *config.Argument,
 	fileReader usecase.FileReader,
 	tableCreator usecase.TableCreator,
+	tablesGetter usecase.TablesGetter,
 	sqlExecuter usecase.SQLExecutor,
 	recordInserter usecase.RecordsInserter,
 	historyTableCreator usecase.HistoryTableCreator,
@@ -82,6 +84,7 @@ func NewTUI(
 		localUsecases: &localUsecases{
 			fileReader:     fileReader,
 			tableCreator:   tableCreator,
+			tablesGetter:   tablesGetter,
 			sqlExecutor:    sqlExecuter,
 			recordInserter: recordInserter,
 		},
@@ -283,9 +286,9 @@ func (t *TUI) removeConnectionFromConfig(connectionName string) {
 
 // importFiles imports files into the SQLite3 in-memory database.
 func (t *TUI) importFiles(ctx context.Context) error {
-	importedFiles := make([]*model.File, 0, len(t.files))
+	tables := []*model.Table{}
 	defer func() {
-		t.home.sidebar.updateLocalFiles(importedFiles)
+		t.home.sidebar.updateTables(tables, "local")
 	}()
 
 	for _, file := range t.files {
@@ -299,7 +302,11 @@ func (t *TUI) importFiles(ctx context.Context) error {
 		if err := t.localUsecases.recordInserter.InsertRecords(ctx, table); err != nil {
 			return err
 		}
-		importedFiles = append(importedFiles, file)
+		tableList, err := t.localUsecases.tablesGetter.GetTables(ctx)
+		if err != nil {
+			return err
+		}
+		tables = tableList
 	}
 	return nil
 }
@@ -504,8 +511,6 @@ func (t *TUI) loadDatabaseTables(ctx context.Context, dbName string) {
 		t.showError(fmt.Errorf("failed to load tables: %w", err))
 		return
 	}
-
-	// Update the sidebar with the tables
 	t.home.sidebar.updateTables(tables, dbName)
 }
 

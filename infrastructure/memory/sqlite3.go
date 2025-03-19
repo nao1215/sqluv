@@ -56,13 +56,7 @@ func NewTableGetter(db config.MemoryDB) repository.TablesGetter {
 
 // GetTables get tables in memory
 func (g *tableGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
-	tx, err := g.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	rows, err := tx.QueryContext(ctx,
+	rows, err := g.db.QueryContext(ctx,
 		"SELECT name FROM sqlite_master WHERE type = 'table'")
 	if err != nil {
 		return nil, err
@@ -75,15 +69,39 @@ func (g *tableGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 		if err := rows.Scan(&name); err != nil {
 			return nil, err
 		}
-		tables = append(tables, model.NewTable(name, model.Header{}, []model.Record{}))
-	}
 
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
+		// Retrieve column info for the table using PRAGMA table_info
+		pragmaQuery := "PRAGMA table_info('" + name + "')"
+		colRows, err := g.db.QueryContext(ctx, pragmaQuery)
+		if err != nil {
+			return nil, err
+		}
 
-	if err := tx.Commit(); err != nil {
+		columns := []string{}
+		for colRows.Next() {
+			var cid int
+			var colName string
+			var colType string
+			var notnull int
+			var dfltValue interface{}
+			var pk int
+			if err := colRows.Scan(&cid, &colName, &colType, &notnull, &dfltValue, &pk); err != nil {
+				colRows.Close()
+				return nil, err
+			}
+			columns = append(columns, colName)
+		}
+		colRows.Close()
+
+		if err := colRows.Err(); err != nil {
+			return nil, err
+		}
+
+		header := model.NewHeader(columns)
+		// Create table with header (column names) and empty records
+		tables = append(tables, model.NewTable(name, header, []model.Record{}))
+	}
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 	return tables, nil
@@ -106,19 +124,12 @@ func (r *recordInserter) InsertRecords(ctx context.Context, t *model.Table) erro
 	if err := t.Valid(); err != nil {
 		return err
 	}
-
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
 	for _, v := range t.Records() {
-		if _, err := tx.ExecContext(ctx, infrastructure.GenerateInsertStatement(t.Name(), v)); err != nil {
+		if _, err := r.db.ExecContext(ctx, infrastructure.GenerateInsertStatement(t.Name(), v)); err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 // _ interface implementation check
@@ -141,7 +152,7 @@ func (e *queryExecutor) ExecuteQuery(ctx context.Context, sql *model.SQL) (*mode
 	}
 	defer tx.Rollback()
 
-	table, err := infrastructure.Query(ctx, tx, sql.String())
+	table, err := infrastructure.Query(ctx, e.db, sql.String())
 	if err != nil {
 		return nil, err
 	}

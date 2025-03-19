@@ -43,52 +43,7 @@ func newSidebar(theme *Theme) *sidebar {
 	return sb
 }
 
-// Add this method to your sidebar struct
-func (s *sidebar) updateLocalFiles(files []*model.File) {
-	// Find or create the "local" root node
-	root := s.GetRoot()
-	var localNode *tview.TreeNode
-
-	colors := s.theme.GetColors()
-	root.SetTextStyle(tcell.StyleDefault.
-		Background(colors.Background).
-		Foreground(colors.Foreground))
-
-	// Look for existing local node
-	for _, child := range root.GetChildren() {
-		if child.GetText() == "local" {
-			localNode = child
-			break
-		}
-	}
-
-	// If local node doesn't exist, create it
-	if localNode == nil {
-		localNode = tview.NewTreeNode("local").
-			SetSelectable(true).
-			SetExpanded(true).
-			SetTextStyle(tcell.StyleDefault.
-				Background(colors.Background).
-				Foreground(colors.Foreground))
-		root.AddChild(localNode)
-	} else {
-		localNode.ClearChildren()
-	}
-
-	for _, file := range files {
-		name := file.NameWithoutExt()
-		fileNode := tview.NewTreeNode(name).
-			SetSelectable(true).
-			SetReference(file).
-			SetTextStyle(tcell.StyleDefault.
-				Background(colors.Background).
-				Foreground(colors.Foreground))
-		localNode.AddChild(fileNode)
-	}
-	applyThemeToTreeNodes(root, colors)
-}
-
-// updateTables update tables in the sidebar
+// updateTables updates the sidebar with tables and, on table click, shows the column names.
 func (s *sidebar) updateTables(tables []*model.Table, dbName string) {
 	root := s.GetRoot()
 	if root == nil {
@@ -102,7 +57,7 @@ func (s *sidebar) updateTables(tables []*model.Table, dbName string) {
 		Background(colors.Background).
 		Foreground(colors.Foreground))
 
-	// Create database node
+	// Create the database node.
 	dbNode := tview.NewTreeNode(dbName).
 		SetSelectable(true).
 		SetTextStyle(tcell.StyleDefault.
@@ -110,18 +65,44 @@ func (s *sidebar) updateTables(tables []*model.Table, dbName string) {
 			Foreground(colors.Foreground))
 	root.AddChild(dbNode)
 
-	// Add tables under the database node
+	seen := make(map[string]bool)
+	// Add tables under the database node.
 	for _, table := range tables {
-		tableNode := tview.NewTreeNode(table.Name()).
+		// Skip duplicate table names.
+		if seen[table.Name()] {
+			continue
+		}
+		seen[table.Name()] = true
+
+		// Capture table in local variable for closure.
+		tbl := table
+		tableNode := tview.NewTreeNode("▷ " + tbl.Name()).
 			SetSelectable(true).
-			SetReference(table).
+			SetReference(tbl).
 			SetTextStyle(tcell.StyleDefault.
 				Background(colors.Background).
 				Foreground(colors.Foreground))
+
+		// When a table node is selected, toggle its column names.
+		tableNode.SetSelectedFunc(func() {
+			if len(tableNode.GetChildren()) == 0 {
+				for _, col := range tbl.Header() {
+					colNode := tview.NewTreeNode(col).
+						SetSelectable(false).
+						SetTextStyle(tcell.StyleDefault.
+							Background(colors.Background).
+							Foreground(colors.Foreground))
+					tableNode.AddChild(colNode)
+				}
+			} else {
+				tableNode.ClearChildren()
+			}
+			applyThemeToTreeNodes(tableNode, colors)
+			s.SetCurrentNode(tableNode)
+		})
 		dbNode.AddChild(tableNode)
 	}
 	s.SetCurrentNode(root)
-
 	applyThemeToTreeNodes(root, colors)
 }
 

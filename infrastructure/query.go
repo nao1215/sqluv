@@ -9,8 +9,8 @@ import (
 )
 
 // Query executes query.
-func Query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) {
-	rows, err := tx.QueryContext(ctx, query)
+func Query(ctx context.Context, db *sql.DB, query string) (*model.Table, error) {
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -44,9 +44,6 @@ func Query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) 
 		records = append(records, result)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return model.NewTable(ExtractTableName(query), header, records), nil
