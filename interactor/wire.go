@@ -7,6 +7,7 @@ import "github.com/google/wire"
 var Set = wire.NewSet(
 	NewFileReader,
 	NewTableCreator,
+	NewLocalTablesGetter,
 	NewRecordsInserter,
 	NewSQLExecutor,
 	NewHistoryTableCreator,

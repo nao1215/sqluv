@@ -28,6 +28,8 @@ func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
 	}
 	tableCreator := memory.NewTableCreator(memoryDB)
 	usecaseTableCreator := interactor.NewTableCreator(tableCreator)
+	tablesGetter := memory.NewTableGetter(memoryDB)
+	usecaseTablesGetter := interactor.NewLocalTablesGetter(tablesGetter)
 	queryExecutor := memory.NewQueryExecutor(memoryDB)
 	statementExecutor := memory.NewStatementExecutor(memoryDB)
 	sqlExecutor := interactor.NewSQLExecutor(queryExecutor, statementExecutor)
@@ -55,7 +57,7 @@ func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
-	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
+	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, usecaseTablesGetter, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
 	return tuiTUI, func() {
 		cleanup2()
 		cleanup()

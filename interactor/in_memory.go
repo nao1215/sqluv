@@ -29,6 +29,26 @@ func (r *tableCreator) CreateTable(ctx context.Context, t *model.Table) error {
 	return r.TableCreator.CreateTable(ctx, t)
 }
 
+var _ usecase.TablesGetter = (*localTablesGetter)(nil)
+
+type localTablesGetter struct {
+	repository.TablesGetter
+}
+
+// NewLocalTablesGetter create new TablesGetter.
+func NewLocalTablesGetter(
+	g repository.TablesGetter,
+) usecase.TablesGetter {
+	return &localTablesGetter{
+		TablesGetter: g,
+	}
+}
+
+// GetTables gets tables in the database.
+func (r *localTablesGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
+	return r.TablesGetter.GetTables(ctx)
+}
+
 // _ interface implementation check
 var _ usecase.RecordsInserter = (*recordsInserter)(nil)
 
