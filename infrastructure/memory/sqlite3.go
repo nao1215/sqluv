@@ -56,7 +56,13 @@ func NewTableGetter(db config.MemoryDB) repository.TablesGetter {
 
 // GetTables get tables in memory
 func (g *tableGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
-	rows, err := g.db.QueryContext(ctx,
+	tx, err := g.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	rows, err := tx.QueryContext(ctx,
 		"SELECT name FROM sqlite_master WHERE type = 'table'")
 	if err != nil {
 		return nil, err
@@ -72,7 +78,7 @@ func (g *tableGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 
 		// Retrieve column info for the table using PRAGMA table_info
 		pragmaQuery := "PRAGMA table_info('" + name + "')"
-		colRows, err := g.db.QueryContext(ctx, pragmaQuery)
+		colRows, err := tx.QueryContext(ctx, pragmaQuery)
 		if err != nil {
 			return nil, err
 		}
@@ -104,6 +110,9 @@ func (g *tableGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return tables, nil
 }
 
@@ -124,12 +133,19 @@ func (r *recordInserter) InsertRecords(ctx context.Context, t *model.Table) erro
 	if err := t.Valid(); err != nil {
 		return err
 	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	for _, v := range t.Records() {
-		if _, err := r.db.ExecContext(ctx, infrastructure.GenerateInsertStatement(t.Name(), v)); err != nil {
+		if _, err := tx.ExecContext(ctx, infrastructure.GenerateInsertStatement(t.Name(), v)); err != nil {
 			return err
 		}
 	}
-	return nil
+	return tx.Commit()
 }
 
 // _ interface implementation check
