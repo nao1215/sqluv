@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/nao1215/sqluv/config"
 	"github.com/rivo/tview"
 )
@@ -58,6 +59,7 @@ func newConnectionModal(app *tview.Application, theme *Theme, onClose func(conn 
 			cm.app.Stop()
 		}
 	})
+	cm.applyTheme(theme)
 	return cm
 }
 
@@ -65,19 +67,19 @@ func newConnectionModal(app *tview.Application, theme *Theme, onClose func(conn 
 func (cm *connectionModal) showNewConnectionForm() {
 	form := tview.NewForm()
 
-	form.AddInputField("Connection Name", "", 30, nil, nil)
+	form.AddInputField("Connection Name", "", 0, nil, nil)
 	dbmsTypes := []string{string(config.MySQL), string(config.PostgreSQL), string(config.SQLite3), string(config.SQLServer)}
 
 	// First add all form fields without the callback
 	form.AddDropDown("DBMS Type", dbmsTypes, 0, nil)
-	form.AddInputField("Host", "127.0.0.1", 50, nil, nil)
-	form.AddInputField("Port", "3306", 10, func(_ string, lastChar rune) bool {
+	form.AddInputField("Host", "127.0.0.1", 0, nil, nil)
+	form.AddInputField("Port", "3306", 0, func(_ string, lastChar rune) bool {
 		return '0' <= lastChar && lastChar <= '9'
 	}, nil)
-	form.AddInputField("Username", "", 30, nil, nil)
-	form.AddPasswordField("Password", "", 30, '*', nil)
-	form.AddInputField("Database Name", "", 30, nil, nil)
-	form.AddInputField("Database File Path (SQLite3 only)", "", 50, nil, nil)
+	form.AddInputField("Username", "", 0, nil, nil)
+	form.AddPasswordField("Password", "", 0, '*', nil)
+	form.AddInputField("Database Name", "", 0, nil, nil)
+	form.AddInputField("Database File Path (SQLite3 only)", "", 0, nil, nil)
 
 	// Now that all fields exist, we can set up the callback for the dropdown
 	dbmsDropdown := form.GetFormItem(1).(*tview.DropDown)
@@ -205,6 +207,25 @@ func (cm *connectionModal) showNewConnectionForm() {
 	})
 
 	form.SetBorder(true).SetTitle("New Database Connection")
+
+	// Retrieve colors from the current theme (via config.ColorConfig)
+	colors := cm.theme.GetColors()
+	form.SetBackgroundColor(colors.Background)
+	form.SetBorderColor(colors.Border)
+	form.SetTitleColor(colors.Header)
+	form.SetFieldTextColor(colors.Foreground)
+	form.SetFieldBackgroundColor(colors.Background)
+	form.SetLabelColor(colors.Foreground)
+	form.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.BorderFocus))
+	form.SetButtonStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+	form.SetFieldStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
+
 	cm.app.SetRoot(form, true)
 }
 
@@ -221,10 +242,10 @@ func (cm *connectionModal) showConnectionsList() {
 		cm.showError("No saved connections found")
 		return
 	}
-
 	// Create a list to display connections
+	colors := cm.theme.GetColors()
 	list := tview.NewList()
-	list.SetTitle("Saved Connections").SetBorder(true)
+	list.SetTitle("Saved Connections").SetBackgroundColor(colors.Background)
 
 	// Add connections to the list
 	for i, conn := range connections {
@@ -251,6 +272,23 @@ func (cm *connectionModal) showConnectionsList() {
 	list.AddItem("Back", "Return to connection options", '*', func() {
 		cm.app.SetRoot(cm.Modal, true)
 	})
+
+	list.SetBorder(true)
+	list.SetTitleColor(colors.Header)
+	list.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Border).
+		Foreground(colors.BorderFocus))
+	list.SetBackgroundColor(colors.Background)
+	list.SetMainTextStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
+	list.SetSecondaryTextStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.ButtonText))
+	list.SetSelectedBackgroundColor(colors.Selection)
+	list.SetShortcutStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
 
 	// Show the list
 	cm.app.SetRoot(list, true)
@@ -282,8 +320,19 @@ func (cm *connectionModal) showError(message string) {
 func (cm *connectionModal) applyTheme(theme *Theme) {
 	colors := theme.GetColors()
 
+	cm.Modal.SetBorder(true).SetBorderColor(colors.Border)
 	cm.Modal.SetBackgroundColor(colors.Background)
 	cm.Modal.SetTextColor(colors.Foreground)
 	cm.Modal.SetButtonBackgroundColor(colors.Button)
 	cm.Modal.SetButtonTextColor(colors.ButtonText)
+	cm.Modal.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.BorderFocus))
+	cm.Modal.SetButtonActivatedStyle(tcell.StyleDefault.
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus))
+	cm.Modal.SetButtonStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+
 }

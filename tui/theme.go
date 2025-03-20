@@ -97,7 +97,18 @@ func (t *Theme) ShowColorSchemeSelector(onClose func()) {
 
 			// Get colors for styling
 			colors := t.GetColors()
-			button.SetBackgroundColor(colors.Button)
+			button.SetStyle(tcell.StyleDefault.
+				Background(colors.Button).
+				Foreground(colors.ButtonText))
+			button.SetActivatedStyle(tcell.StyleDefault.
+				Background(colors.ButtonFocus).
+				Foreground(colors.ButtonTextFocus))
+			button.SetBorderStyle(tcell.StyleDefault.
+				Background(colors.Button).
+				Foreground(colors.ButtonText))
+			button.SetDisabledStyle(tcell.StyleDefault.
+				Background(colors.Button).
+				Foreground(colors.ButtonText))
 			button.SetLabelColor(colors.ButtonText)
 
 			// Use closure to capture the correct scheme name
@@ -134,7 +145,18 @@ func (t *Theme) ShowColorSchemeSelector(onClose func()) {
 
 	// Style the cancel button
 	colors := t.GetColors()
-	cancelButton.SetBackgroundColor(colors.Button)
+	cancelButton.SetStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+	cancelButton.SetActivatedStyle(tcell.StyleDefault.
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus))
+	cancelButton.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+	cancelButton.SetDisabledStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
 	cancelButton.SetLabelColor(colors.ButtonText)
 
 	cancelButton.SetSelectedFunc(func() {
