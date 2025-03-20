@@ -51,7 +51,7 @@ func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
 	usecaseHistoryCreator := interactor.NewHistoryCreator(historyCreator)
 	historyLister := persistence.NewHistoryLister(historyDB)
 	usecaseHistoryLister := interactor.NewHistoryLister(historyLister)
-	colorConfig, err := config.NewColorManager()
+	colorConfig, err := config.NewColorConfig()
 	if err != nil {
 		cleanup2()
 		cleanup()

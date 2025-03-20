@@ -247,8 +247,8 @@ func DefaultColorSchemes() map[string]*ColorScheme {
 	}
 }
 
-// NewColorManager creates a new color manager
-func NewColorManager() (*ColorConfig, error) {
+// NewColorConfig creates a new color manager
+func NewColorConfig() (*ColorConfig, error) {
 	configDir, err := ensureConfigDir()
 	if err != nil {
 		return nil, err

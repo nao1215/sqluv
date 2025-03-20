@@ -15,6 +15,9 @@ func newHistoryButton(theme *Theme) *historyButton {
 	button := tview.NewButton("History")
 	button.SetBorder(false)
 	button.SetTitle("Show SQL Query History")
+	button.SetBorderStyle(tcell.StyleDefault.
+		Background(theme.GetColors().Border).
+		Foreground(theme.GetColors().BorderFocus))
 
 	button.SetFocusFunc(func() {
 		button.SetBorderColor(theme.GetColors().BorderFocus)
