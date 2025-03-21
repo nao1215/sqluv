@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -31,7 +32,7 @@ func run(stdout, stderr io.Writer, args []string) int {
 		return 0
 	}
 
-	sqluv, cleanup, err := di.NewSqluv(arg)
+	sqluv, cleanup, err := di.NewSqluv(context.Background(), arg)
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to initialize TUI: %v\n", err)
 		return 1

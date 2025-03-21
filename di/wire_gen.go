@@ -7,6 +7,7 @@
 package di
 
 import (
+	"context"
 	"github.com/nao1215/sqluv/config"
 	"github.com/nao1215/sqluv/infrastructure/memory"
 	"github.com/nao1215/sqluv/infrastructure/persistence"
@@ -17,10 +18,15 @@ import (
 // Injectors from wire.go:
 
 // New creates a new sqluv command instance.
-func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
-	csvReader := persistence.NewCSVReader()
-	tsvReader := persistence.NewTSVReader()
-	ltsvReader := persistence.NewLTSVReader()
+func NewSqluv(ctx context.Context, arg *config.Argument) (*tui.TUI, func(), error) {
+	awsConfig, err := config.NewAWSConfig(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	s3Client := persistence.NewS3Client(awsConfig)
+	csvReader := persistence.NewCSVReader(s3Client)
+	tsvReader := persistence.NewTSVReader(s3Client)
+	ltsvReader := persistence.NewLTSVReader(s3Client)
 	fileReader := interactor.NewFileReader(csvReader, tsvReader, ltsvReader)
 	memoryDB, cleanup, err := config.NewMemoryDB()
 	if err != nil {

@@ -23,7 +23,7 @@ func TestCSVReaderReadCSV(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		c := NewCSVReader()
+		c := NewCSVReader(nil)
 		got, err := c.ReadCSV(t.Context(), file)
 		if err != nil {
 			t.Fatal(err)
@@ -55,7 +55,7 @@ func TestTSVReaderReadTSV(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		c := NewTSVReader()
+		c := NewTSVReader(nil)
 		got, err := c.ReadTSV(t.Context(), file)
 		if err != nil {
 			t.Fatal(err)
@@ -87,7 +87,7 @@ func TestLTSVReaderReadLTSV(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		c := NewLTSVReader()
+		c := NewLTSVReader(nil)
 		got, err := c.ReadLTSV(t.Context(), file)
 		if err != nil {
 			t.Fatal(err)
@@ -115,7 +115,7 @@ func TestLTSVReaderReadLTSV(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		c := NewLTSVReader()
+		c := NewLTSVReader(nil)
 		if _, err = c.ReadLTSV(t.Context(), file); !errors.Is(err, infrastructure.ErrNoLabel) {
 			t.Errorf("error is wrong. got: %v, want: %v", err, infrastructure.ErrNoLabel)
 		}
@@ -133,7 +133,7 @@ func TestIOReaderHTTPS(t *testing.T) {
 			t.Fatalf("failed to create file: %v", err)
 		}
 
-		reader, cleanup, err := ioReader(t.Context(), file)
+		reader, cleanup, err := ioReader(t.Context(), file, nil)
 		if err != nil {
 			t.Fatalf("ioReader returned error: %v", err)
 		}
