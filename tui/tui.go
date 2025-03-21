@@ -119,9 +119,7 @@ func (t *TUI) Run() error {
 
 	if t.hasLocalFiles() {
 		if err := t.importFiles(ctx); err != nil {
-			t.showError(err)
-			t.app.SetFocus(t.home.queryTextArea)
-			return t.app.Run()
+			return err
 		}
 	} else {
 		connectionModal := newConnectionModal(t.app, t.theme, t.handleConnectionSelection)
@@ -134,9 +132,11 @@ func (t *TUI) Run() error {
 
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
+		t.app.SetFocus(t.home.queryTextArea)
 	})
 	t.home.historyButton.SetSelectedFunc(func() {
 		t.showHistoryList()
+
 	})
 	t.refreshAllComponents()
 	return t.app.Run()
@@ -248,6 +248,7 @@ func (t *TUI) handleConnectionSelection(conn *config.DBConnection) {
 
 	t.home.executeButton.SetSelectedFunc(func() {
 		t.executeQuery(context.Background())
+		t.app.SetFocus(t.home.queryTextArea)
 	})
 	t.home.historyButton.SetSelectedFunc(func() {
 		t.showHistoryList()

@@ -9,7 +9,9 @@ import (
 // queryResultTable represents a table that displays SQL query results.
 type queryResultTable struct {
 	*tview.Table
-	theme *Theme
+	theme        *Theme
+	columnOffset int // new field to track the starting column index
+	maxColumns   int // new field to define how many columns to display
 }
 
 // newQueryResultTable creates a new query result table.
@@ -65,43 +67,80 @@ func (q *queryResultTable) clear() {
 
 // update updates the table with model.Table data
 func (q *queryResultTable) update(table *model.Table, stats *rowStatistics, executionTime float64) {
-	if table == nil {
-		q.clear()
-		return
-	}
 	q.Clear()
+	colors := q.theme.GetColors()
+	headers := table.Header()
+	totalCols := len(headers)
 
-	// Get theme colors for consistent styling
-	colors := q.theme.GetColors() // We need to store the theme in queryResultTable
+	// Ensure that q.maxColumns is set to the desired number of visible columns.
+	if q.maxColumns <= 0 {
+		q.maxColumns = 6
+	}
 
-	// Set column widths and headers
-	for i, col := range table.Header() {
+	// Adjust the column offset if needed.
+	if q.columnOffset > totalCols-q.maxColumns {
+		q.columnOffset = totalCols - q.maxColumns
+		if q.columnOffset < 0 {
+			q.columnOffset = 0
+		}
+	}
+
+	// Calculate the ending index for visible columns.
+	end := q.columnOffset + q.maxColumns
+	if end > totalCols {
+		end = totalCols
+	}
+
+	// Render header row for visible columns.
+	for i, col := range headers[q.columnOffset:end] {
 		q.SetCell(0, i,
 			tview.NewTableCell(col).
-				SetTextColor(colors.Header). // Use theme Header color
+				SetTextColor(colors.Header).
 				SetSelectable(false).
-				SetAlign(tview.AlignCenter).
-				SetMaxWidth(q.calcMaxWidth(table)).
-				SetExpansion(1))
+				SetAlign(tview.AlignCenter))
 	}
 
-	// Set row data with consistent column widths
+	// Render rows.
 	rows := table.Records()
 	for rowIdx, row := range rows {
-		for colIdx, cell := range row {
+		rEnd := q.columnOffset + q.maxColumns
+		if rEnd > len(row) {
+			rEnd = len(row)
+		}
+		for colIdx, cell := range row[q.columnOffset:rEnd] {
 			q.SetCell(rowIdx+1, colIdx,
 				tview.NewTableCell(cell).
-					SetTextColor(colors.Foreground). // Use theme Foreground color
+					SetTextColor(colors.Foreground).
 					SetAlign(tview.AlignLeft).
 					SetMaxWidth(q.calcMaxWidth(table)).
-					SetSelectable(true).
 					SetExpansion(1))
 		}
 	}
-	q.ScrollToBeginning()
 
-	// Set up row selection handling with the updated execution time
+	q.ScrollToBeginning()
 	q.setupRowSelectionHandling(stats, executionTime)
+	q.setHorizontalScrollHandler(totalCols, table, stats, executionTime)
+}
+
+// setHorizontalScrollHandler sets the input capture to handle horizontal scrolling.
+func (q *queryResultTable) setHorizontalScrollHandler(totalCols int, table *model.Table, stats *rowStatistics, executionTime float64) {
+	q.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyLeft:
+			if q.columnOffset > 0 {
+				q.columnOffset--
+				q.update(table, stats, executionTime)
+			}
+			return nil
+		case tcell.KeyRight:
+			if q.columnOffset+q.maxColumns < totalCols {
+				q.columnOffset++
+				q.update(table, stats, executionTime)
+			}
+			return nil
+		}
+		return event
+	})
 }
 
 // calcMaxWidth calculates the maximum width of the table.

@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -41,7 +42,6 @@ func (d *errorDialog) Show(previousPage tview.Primitive, errorMsg string) {
 			d.app.SetRoot(d.previousPage, true)
 		})
 	d.app.SetRoot(d.Modal, true)
-	d.app.SetFocus(d.Modal)
 }
 
 func (d *errorDialog) applyTheme(theme *Theme) {
@@ -53,4 +53,13 @@ func (d *errorDialog) applyTheme(theme *Theme) {
 
 	d.SetButtonBackgroundColor(colors.Button)
 	d.SetButtonTextColor(colors.ButtonText)
+	d.SetBorderStyle(tcell.StyleDefault.
+		Foreground(colors.BorderFocus).
+		Background(colors.Background))
+	d.SetBorderStyle(tcell.StyleDefault.
+		Foreground(colors.BorderFocus).
+		Background(colors.Background))
+	d.SetButtonActivatedStyle(tcell.StyleDefault.
+		Foreground(colors.ButtonTextFocus).
+		Background(colors.Button))
 }
