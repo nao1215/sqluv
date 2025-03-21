@@ -125,19 +125,25 @@ func (q *queryResultTable) update(table *model.Table, stats *rowStatistics, exec
 // setHorizontalScrollHandler sets the input capture to handle horizontal scrolling.
 func (q *queryResultTable) setHorizontalScrollHandler(totalCols int, table *model.Table, stats *rowStatistics, executionTime float64) {
 	q.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// Get current selection (row and col in the visible area)
+		_, selCol := q.GetSelection()
 		switch event.Key() {
 		case tcell.KeyLeft:
-			if q.columnOffset > 0 {
+			// If focus is on the very first visible column and there are hidden columns to the left,
+			// shift the columns only once.
+			if selCol == 0 && q.columnOffset > 0 {
 				q.columnOffset--
 				q.update(table, stats, executionTime)
+				return nil
 			}
-			return nil
 		case tcell.KeyRight:
-			if q.columnOffset+q.maxColumns < totalCols {
+			// If focus is on the very last visible column and there are hidden columns to the right,
+			// shift the viewport.
+			if selCol == q.maxColumns-1 && q.columnOffset+q.maxColumns < totalCols {
 				q.columnOffset++
 				q.update(table, stats, executionTime)
+				return nil
 			}
-			return nil
 		}
 		return event
 	})
