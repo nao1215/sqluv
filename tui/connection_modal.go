@@ -334,5 +334,4 @@ func (cm *connectionModal) applyTheme(theme *Theme) {
 	cm.Modal.SetButtonStyle(tcell.StyleDefault.
 		Background(colors.Button).
 		Foreground(colors.ButtonText))
-
 }

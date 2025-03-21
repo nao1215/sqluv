@@ -136,7 +136,6 @@ func (t *TUI) Run() error {
 	})
 	t.home.historyButton.SetSelectedFunc(func() {
 		t.showHistoryList()
-
 	})
 	t.refreshAllComponents()
 	return t.app.Run()
@@ -293,7 +292,7 @@ func (t *TUI) importFiles(ctx context.Context) error {
 	}()
 
 	for _, file := range t.files {
-		table, err := t.localUsecases.fileReader.Read(file)
+		table, err := t.localUsecases.fileReader.Read(ctx, file)
 		if err != nil {
 			return err
 		}

@@ -10,6 +10,7 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/nao1215/sqluv/domain/model"
@@ -41,18 +42,18 @@ func (m *MockFileReader) EXPECT() *MockFileReaderMockRecorder {
 }
 
 // Read mocks base method.
-func (m *MockFileReader) Read(file *model.File) (*model.Table, error) {
+func (m *MockFileReader) Read(ctx context.Context, file *model.File) (*model.Table, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Read", file)
+	ret := m.ctrl.Call(m, "Read", ctx, file)
 	ret0, _ := ret[0].(*model.Table)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Read indicates an expected call of Read.
-func (mr *MockFileReaderMockRecorder) Read(file any) *MockFileReaderReadCall {
+func (mr *MockFileReaderMockRecorder) Read(ctx, file any) *MockFileReaderReadCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockFileReader)(nil).Read), file)
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockFileReader)(nil).Read), ctx, file)
 	return &MockFileReaderReadCall{Call: call}
 }
 
@@ -68,13 +69,13 @@ func (c *MockFileReaderReadCall) Return(arg0 *model.Table, arg1 error) *MockFile
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockFileReaderReadCall) Do(f func(*model.File) (*model.Table, error)) *MockFileReaderReadCall {
+func (c *MockFileReaderReadCall) Do(f func(context.Context, *model.File) (*model.Table, error)) *MockFileReaderReadCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockFileReaderReadCall) DoAndReturn(f func(*model.File) (*model.Table, error)) *MockFileReaderReadCall {
+func (c *MockFileReaderReadCall) DoAndReturn(f func(context.Context, *model.File) (*model.Table, error)) *MockFileReaderReadCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

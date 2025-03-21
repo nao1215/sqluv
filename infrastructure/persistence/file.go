@@ -1,8 +1,11 @@
 package persistence
 
 import (
+	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
+	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -22,14 +25,14 @@ func NewCSVReader() repository.CSVReader {
 }
 
 // ReadCSV read records from CSV files and return them as model.CSV.
-func (c *csvReader) ReadCSV(file *model.File) (*model.Table, error) {
-	f, err := file.Open()
+func (c *csvReader) ReadCSV(ctx context.Context, file *model.File) (*model.Table, error) {
+	ioReader, closer, err := ioReader(ctx, file)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer closer()
 
-	r := csv.NewReader(f)
+	r := csv.NewReader(ioReader)
 	header := model.Header{}
 	records := []model.Record{}
 	for {
@@ -59,14 +62,14 @@ func NewTSVReader() repository.TSVReader {
 }
 
 // ReadTSV read records from TSV files and return them as model.TSV.
-func (t *tsvReader) ReadTSV(file *model.File) (*model.Table, error) {
-	f, err := file.Open()
+func (t *tsvReader) ReadTSV(ctx context.Context, file *model.File) (*model.Table, error) {
+	ioReader, closer, err := ioReader(ctx, file)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer closer()
 
-	r := csv.NewReader(f)
+	r := csv.NewReader(ioReader)
 	r.Comma = '\t'
 
 	header := model.Header{}
@@ -98,14 +101,14 @@ func NewLTSVReader() repository.LTSVReader {
 }
 
 // ReadLTSV read records from LTSV files and return them as model.LTSV.
-func (l *ltsvReader) ReadLTSV(file *model.File) (*model.Table, error) {
-	f, err := file.Open()
+func (l *ltsvReader) ReadLTSV(ctx context.Context, file *model.File) (*model.Table, error) {
+	ioReader, closer, err := ioReader(ctx, file)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer closer()
 
-	r := csv.NewReader(f)
+	r := csv.NewReader(ioReader)
 	r.Comma = '\t'
 
 	label := model.Label{}
@@ -145,4 +148,31 @@ func (l *ltsvReader) labelAndData(s string) (string, string, error) {
 		return "", "", infrastructure.ErrNoLabel
 	}
 	return s[:idx], s[idx+1:], nil
+}
+
+// ioReader returns io.Reader, closer and error.
+// If file is HTTP protocol, it returns io.Reader from HTTP response body.
+// If file is not HTTP protocol, it returns io.Reader from file.
+func ioReader(ctx context.Context, file *model.File) (io.Reader, func() error, error) {
+	if file.IsHTTPProtocol() {
+		// Assume FullURL returns the full URL (e.g. "https://example.com/path/to/file").
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, file.FullURL(), nil)
+		if err != nil {
+			return nil, nil, err
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, nil, err
+		}
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			return nil, nil, fmt.Errorf("remote file request failed with status: %s", resp.Status)
+		}
+		return resp.Body, resp.Body.Close, nil
+	}
+	f, err := file.Open()
+	if err != nil {
+		return nil, nil, err
+	}
+	return f, f.Close, nil
 }

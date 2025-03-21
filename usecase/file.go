@@ -2,6 +2,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/nao1215/sqluv/domain/model"
 )
 
@@ -10,6 +12,6 @@ import (
 type (
 	// FileReader is an interface for reading records from CSV/TSV/LTSV files and returning them as model.Table.
 	FileReader interface {
-		Read(file *model.File) (*model.Table, error)
+		Read(ctx context.Context, file *model.File) (*model.Table, error)
 	}
 )
