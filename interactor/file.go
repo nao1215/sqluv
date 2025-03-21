@@ -1,6 +1,8 @@
 package interactor
 
 import (
+	"context"
+
 	"github.com/nao1215/sqluv/domain/model"
 	"github.com/nao1215/sqluv/domain/repository"
 	"github.com/nao1215/sqluv/usecase"
@@ -29,14 +31,14 @@ func NewFileReader(
 }
 
 // Read read records from CSV/TSV/LTSV files and return them as model.Table.
-func (r *fileReader) Read(file *model.File) (*model.Table, error) {
+func (r *fileReader) Read(ctx context.Context, file *model.File) (*model.Table, error) {
 	switch {
 	case file.IsCSV():
-		return r.CSVReader.ReadCSV(file)
+		return r.CSVReader.ReadCSV(ctx, file)
 	case file.IsTSV():
-		return r.TSVReader.ReadTSV(file)
+		return r.TSVReader.ReadTSV(ctx, file)
 	case file.IsLTSV():
-		return r.LTSVReader.ReadLTSV(file)
+		return r.LTSVReader.ReadLTSV(ctx, file)
 	default:
 		return nil, usecase.ErrNotSupportedFileFormat
 	}

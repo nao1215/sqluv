@@ -11,17 +11,31 @@ import (
 type File struct {
 	// path is file path.
 	path string
+	// protocol is file protocol.
+	protocol string
 }
 
 // NewFile create new File.
+// If path is empty, return error.
+// If path does not contain protocol, add file:// protocol.
 func NewFile(
 	path string,
 ) (*File, error) {
 	if path == "" {
 		return nil, errors.New("file path is empty")
 	}
+
+	protocol := ""
+	if !strings.Contains(path, "://") {
+		protocol = "file://"
+	} else {
+		protocol = strings.Split(path, "://")[0] + "://"
+		path = strings.Split(path, "://")[1]
+	}
+
 	return &File{
-		path: path,
+		path:     path,
+		protocol: protocol,
 	}, nil
 }
 
@@ -58,4 +72,19 @@ func (f *File) NameWithoutExt() string {
 		}
 	}
 	return strings.TrimSuffix(filename, ext)
+}
+
+// IsFileProtocol return true if file protocol is file://.
+func (f *File) IsFileProtocol() bool {
+	return f.protocol == "file://"
+}
+
+// IsHTTPProtocol return true if file protocol is http:// or https://.
+func (f *File) IsHTTPProtocol() bool {
+	return f.protocol == "http://" || f.protocol == "https://"
+}
+
+// FullURL return full URL.
+func (f *File) FullURL() string {
+	return f.protocol + f.path
 }

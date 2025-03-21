@@ -1,11 +1,11 @@
 ![dbms_demo](doc/image/dbms_demo.gif)
 
-The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local files. The sqluv has the color theme feature, so you can change the color theme to your liking.
+The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and local/http/https CSV/TSV/LTSV files. You execute SQL queries for the connected DBMS or local/http/https files. The sqluv has the color theme feature, so you can change the color theme to your liking.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
 >[!WARNING]
-> sqluv is under development. Do not execute UPDATE or DELETE in the production environment. sqluv can not update or delete data in the local file, but it can update or delete data in the connected DBMS.
+> sqluv is under development. You use sqluv for **viewer**. Do not execute UPDATE or DELETE in the production environment. sqluv can not update or delete data in the local file, but it can update or delete data in the connected DBMS.
 
 ## How to install
 ### Use "go install"
@@ -20,15 +20,11 @@ go install github.com/nao1215/sqluv@latest
 brew install nao1215/tap/sqluv
 ```
 
-## Supported OS, DBMS, go version
+## Supported OS, File Format, DBMS, go version
 
-- Windows
-- macOS
-- Linux
-- MySQL
-- PostgreSQL
-- SQLite3
-- SQL Server
+- Windows/macOS/Linux
+- CSV/TSV/LTSV (file://, http://, https://)
+- MySQL/PostgreSQL/SQLite3/SQL Server
 - go1.24 or later
 
 ## How to use
@@ -36,10 +32,8 @@ brew install nao1215/tap/sqluv
 ### Syntax
 
 ```shell
-sqluv [FILE_PATHS]
+sqluv [FILE_PATHS/HTTP URL/HTTPS URL]  ※ Supported file formats: CSV, TSV, LTSV
 ```
-
-※ Supported file formats: CSV, TSV, LTSV
 
 ### Connect to DBMS
 
@@ -70,8 +64,7 @@ If you select a history, the SQL query will be copied to the query text area.
 
 ### Read from a file
 
-Please specify a file path when executing the sqluv command. The file will be loaded before launching the TUI.
-If you start the sqluv command without specifying a file path, it will enter DBMS connection mode, and local files cannot be loaded.
+Please specify a file path (or url) when executing the sqluv command. The file will be loaded before launching the TUI. When the sqluv import csv/tsv/ltsv, the sqluv checks the file extension and determines the file format. If the file extension is not csv/tsv/ltsv, the sqluv will display an error message. The sqluv does not automatically detect the file format.
 
 ![sqluv_demo](./doc/image/demo.gif)
 

@@ -2,7 +2,9 @@ package persistence
 
 import (
 	"errors"
+	"io"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -22,7 +24,7 @@ func TestCSVReaderReadCSV(t *testing.T) {
 		}
 
 		c := NewCSVReader()
-		got, err := c.ReadCSV(file)
+		got, err := c.ReadCSV(t.Context(), file)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -54,7 +56,7 @@ func TestTSVReaderReadTSV(t *testing.T) {
 		}
 
 		c := NewTSVReader()
-		got, err := c.ReadTSV(file)
+		got, err := c.ReadTSV(t.Context(), file)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -86,7 +88,7 @@ func TestLTSVReaderReadLTSV(t *testing.T) {
 		}
 
 		c := NewLTSVReader()
-		got, err := c.ReadLTSV(file)
+		got, err := c.ReadLTSV(t.Context(), file)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -114,8 +116,41 @@ func TestLTSVReaderReadLTSV(t *testing.T) {
 		}
 
 		c := NewLTSVReader()
-		if _, err = c.ReadLTSV(file); !errors.Is(err, infrastructure.ErrNoLabel) {
+		if _, err = c.ReadLTSV(t.Context(), file); !errors.Is(err, infrastructure.ErrNoLabel) {
 			t.Errorf("error is wrong. got: %v, want: %v", err, infrastructure.ErrNoLabel)
+		}
+	})
+}
+
+func TestIOReaderHTTPS(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success to read data from HTTPS", func(t *testing.T) {
+		t.Parallel()
+
+		file, err := model.NewFile("https://raw.githubusercontent.com/nao1215/sqluv/refs/heads/main/testdata/actor.csv")
+		if err != nil {
+			t.Fatalf("failed to create file: %v", err)
+		}
+
+		reader, cleanup, err := ioReader(t.Context(), file)
+		if err != nil {
+			t.Fatalf("ioReader returned error: %v", err)
+		}
+		defer func() {
+			if err := cleanup(); err != nil {
+				t.Errorf("cleanup returned error: %v", err)
+			}
+		}()
+
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			t.Fatalf("failed to read data from reader: %v", err)
+		}
+
+		content := string(data)
+		if !strings.HasPrefix(content, "actor,total_gross") {
+			t.Errorf("unexpected file format, got: %v", content[:20])
 		}
 	})
 }

@@ -22,6 +22,26 @@ func TestNewFile(t *testing.T) {
 		if f.path != path {
 			t.Errorf("path is wrong. got: %s, want: %s", f.path, path)
 		}
+		if f.protocol != "file://" {
+			t.Errorf("protocol is wrong. got: %s, want: file://", f.protocol)
+		}
+	})
+
+	t.Run("success to create File with protocol", func(t *testing.T) {
+		t.Parallel()
+
+		path := "file:///path/to/file"
+		f, err := NewFile(path)
+		if err != nil {
+			t.Errorf("error should be nil. got: %v", err)
+		}
+
+		if f.path != "/path/to/file" {
+			t.Errorf("path is wrong. got: %s, want: %s", f.path, path)
+		}
+		if f.protocol != "file://" {
+			t.Errorf("protocol is wrong. got: %s, want: ", f.protocol)
+		}
 	})
 
 	t.Run("fail to create File", func(t *testing.T) {
@@ -246,4 +266,116 @@ func TestFileNameWithoutExt(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFile_IsFileProtocol(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		path     string
+		protocol string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name: "file protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "file://",
+			},
+			want: true,
+		},
+		{
+			name: "not file protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "http://",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := &File{
+				path:     tt.fields.path,
+				protocol: tt.fields.protocol,
+			}
+			if got := f.IsFileProtocol(); got != tt.want {
+				t.Errorf("File.IsFileProtocol() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFile_IsHTTPProtocol(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		path     string
+		protocol string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name: "http protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "http://",
+			},
+			want: true,
+		},
+		{
+			name: "https protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "https://",
+			},
+			want: true,
+		},
+		{
+			name: "not http protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "file://",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &File{
+				path:     tt.fields.path,
+				protocol: tt.fields.protocol,
+			}
+			if got := f.IsHTTPProtocol(); got != tt.want {
+				t.Errorf("File.IsHTTPProtocol() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFile_FullURL(t *testing.T) {
+	t.Parallel()
+
+	t.Run("get full URL", func(t *testing.T) {
+		t.Parallel()
+
+		f := &File{
+			path:     "/path/to/file",
+			protocol: "http://",
+		}
+		want := "http:///path/to/file"
+		if got := f.FullURL(); got != want {
+			t.Errorf("File.FullURL() = %v, want %v", got, want)
+		}
+	})
 }

@@ -22,7 +22,7 @@ func TestFileReaderRead(t *testing.T) {
 		csvReader := infrastructure.NewMockCSVReader(ctrl)
 
 		// Set up the expected behavior of the mock.
-		csvReader.EXPECT().ReadCSV(gomock.Any()).Return(
+		csvReader.EXPECT().ReadCSV(gomock.Any(), gomock.Any()).Return(
 			model.NewTable(
 				"test",
 				model.Header([]string{"id", "name"}),
@@ -38,7 +38,7 @@ func TestFileReaderRead(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		got, err := fileReader.Read(file)
+		got, err := fileReader.Read(t.Context(), file)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -63,7 +63,7 @@ func TestFileReaderRead(t *testing.T) {
 		tsvReader := infrastructure.NewMockTSVReader(ctrl)
 
 		// Set up the expected behavior of the mock.
-		tsvReader.EXPECT().ReadTSV(gomock.Any()).Return(
+		tsvReader.EXPECT().ReadTSV(gomock.Any(), gomock.Any()).Return(
 			model.NewTable(
 				"test",
 				model.Header([]string{"id", "name"}),
@@ -79,7 +79,7 @@ func TestFileReaderRead(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		got, err := fileReader.Read(file)
+		got, err := fileReader.Read(t.Context(), file)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -104,7 +104,7 @@ func TestFileReaderRead(t *testing.T) {
 		ltsvReader := infrastructure.NewMockLTSVReader(ctrl)
 
 		// Set up the expected behavior of the mock.
-		ltsvReader.EXPECT().ReadLTSV(gomock.Any()).Return(
+		ltsvReader.EXPECT().ReadLTSV(gomock.Any(), gomock.Any()).Return(
 			model.NewTable(
 				"test",
 				model.Header([]string{"id", "name"}),
@@ -120,7 +120,7 @@ func TestFileReaderRead(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		got, err := fileReader.Read(file)
+		got, err := fileReader.Read(t.Context(), file)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -146,7 +146,7 @@ func TestFileReaderRead(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if _, err := fileReader.Read(file); !errors.Is(err, usecase.ErrNotSupportedFileFormat) {
+		if _, err := fileReader.Read(t.Context(), file); !errors.Is(err, usecase.ErrNotSupportedFileFormat) {
 			t.Errorf("unexpected error: %v", err)
 		}
 	})
