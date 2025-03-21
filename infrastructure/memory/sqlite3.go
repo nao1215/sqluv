@@ -168,7 +168,7 @@ func (e *queryExecutor) ExecuteQuery(ctx context.Context, sql *model.SQL) (*mode
 	}
 	defer tx.Rollback()
 
-	table, err := infrastructure.Query(ctx, e.db, sql.String())
+	table, err := infrastructure.Query(ctx, tx, sql.String())
 	if err != nil {
 		return nil, err
 	}

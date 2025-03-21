@@ -25,7 +25,13 @@ func NewQueryExecutor(db config.DBMS) repository.QueryToRemoteExecutor {
 
 // ExecuteQuery executes query in a database
 func (e *queryExecutor) ExecuteQuery(ctx context.Context, sql *model.SQL) (*model.Table, error) {
-	table, err := infrastructure.Query(ctx, e.db, sql.String())
+	tx, err := e.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	table, err := infrastructure.Query(ctx, tx, sql.String())
 	if err != nil {
 		return nil, err
 	}
