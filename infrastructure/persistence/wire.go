@@ -13,4 +13,5 @@ var Set = wire.NewSet(
 	NewHistoryTableCreator,
 	NewHistoryCreator,
 	NewHistoryLister,
+	NewS3Client,
 )

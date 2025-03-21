@@ -5,6 +5,8 @@
 package di
 
 import (
+	"context"
+
 	"github.com/google/wire"
 	"github.com/nao1215/sqluv/config"
 	"github.com/nao1215/sqluv/infrastructure/memory"
@@ -16,7 +18,7 @@ import (
 //go:generate wire
 
 // New creates a new sqluv command instance.
-func NewSqluv(arg *config.Argument) (*tui.TUI, func(), error) {
+func NewSqluv(ctx context.Context, arg *config.Argument) (*tui.TUI, func(), error) {
 	wire.Build(
 		config.Set,
 		tui.Set,

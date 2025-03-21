@@ -10,4 +10,5 @@ var Set = wire.NewSet(
 	NewDBConfig,
 	NewColorConfig,
 	NewHistoryDB,
+	NewAWSConfig,
 )

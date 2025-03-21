@@ -379,3 +379,106 @@ func TestFile_FullURL(t *testing.T) {
 		}
 	})
 }
+
+func TestFile_IsS3Protocol(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		path     string
+		protocol string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name: "s3 protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "s3://",
+			},
+			want: true,
+		},
+		{
+			name: "not s3 protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "file://",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			f := &File{
+				path:     tt.fields.path,
+				protocol: tt.fields.protocol,
+			}
+			if got := f.IsS3Protocol(); got != tt.want {
+				t.Errorf("File.IsS3Protocol() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFile_BucketAndKey(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		path     string
+		protocol string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+		want1  string
+	}{
+		{
+			name: "s3 protocol",
+			fields: fields{
+				path:     "bucket/key",
+				protocol: "s3://",
+			},
+			want:  "bucket",
+			want1: "key",
+		},
+		{
+			name: "not s3 protocol",
+			fields: fields{
+				path:     "path/to/file",
+				protocol: "file://",
+			},
+			want:  "",
+			want1: "",
+		},
+		{
+			name: "s3 protocol with only bucket name",
+			fields: fields{
+				path:     "bucket",
+				protocol: "s3://",
+			},
+			want:  "bucket",
+			want1: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &File{
+				path:     tt.fields.path,
+				protocol: tt.fields.protocol,
+			}
+			got, got1 := f.BucketAndKey()
+			if got != tt.want {
+				t.Errorf("File.BucketAndKey() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("File.BucketAndKey() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}

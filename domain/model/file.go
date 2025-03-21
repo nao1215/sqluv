@@ -88,3 +88,19 @@ func (f *File) IsHTTPProtocol() bool {
 func (f *File) FullURL() string {
 	return f.protocol + f.path
 }
+
+// IsS3Protocol return true if file protocol is s3://.
+func (f *File) IsS3Protocol() bool {
+	return f.protocol == "s3://"
+}
+
+// BucketAndKey return bucket and key.
+func (f *File) BucketAndKey() (string, string) {
+	if !f.IsS3Protocol() {
+		return "", ""
+	}
+	if strings.Contains(f.path, "/") {
+		return strings.Split(f.path, "/")[0], strings.Split(f.path, "/")[1]
+	}
+	return strings.Split(f.path, "/")[0], ""
+}

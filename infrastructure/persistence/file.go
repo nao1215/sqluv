@@ -17,16 +17,18 @@ import (
 // _ interface implementation check
 var _ repository.CSVReader = (*csvReader)(nil)
 
-type csvReader struct{}
+type csvReader struct {
+	awsClient S3Client
+}
 
 // NewCSVReader return new CSVReader.
-func NewCSVReader() repository.CSVReader {
-	return &csvReader{}
+func NewCSVReader(awsClient S3Client) repository.CSVReader {
+	return &csvReader{awsClient: awsClient}
 }
 
 // ReadCSV read records from CSV files and return them as model.CSV.
 func (c *csvReader) ReadCSV(ctx context.Context, file *model.File) (*model.Table, error) {
-	ioReader, closer, err := ioReader(ctx, file)
+	ioReader, closer, err := ioReader(ctx, file, c.awsClient)
 	if err != nil {
 		return nil, err
 	}
@@ -54,16 +56,18 @@ func (c *csvReader) ReadCSV(ctx context.Context, file *model.File) (*model.Table
 // _ interface implementation check
 var _ repository.TSVReader = (*tsvReader)(nil)
 
-type tsvReader struct{}
+type tsvReader struct {
+	awsClient S3Client
+}
 
 // NewTSVReader return new TSVReader.
-func NewTSVReader() repository.TSVReader {
-	return &tsvReader{}
+func NewTSVReader(awsClient S3Client) repository.TSVReader {
+	return &tsvReader{awsClient: awsClient}
 }
 
 // ReadTSV read records from TSV files and return them as model.TSV.
 func (t *tsvReader) ReadTSV(ctx context.Context, file *model.File) (*model.Table, error) {
-	ioReader, closer, err := ioReader(ctx, file)
+	ioReader, closer, err := ioReader(ctx, file, t.awsClient)
 	if err != nil {
 		return nil, err
 	}
@@ -93,16 +97,18 @@ func (t *tsvReader) ReadTSV(ctx context.Context, file *model.File) (*model.Table
 // _ interface implementation check
 var _ repository.LTSVReader = (*ltsvReader)(nil)
 
-type ltsvReader struct{}
+type ltsvReader struct {
+	awsClient S3Client
+}
 
 // NewLTSVReader return new LTSVReader.
-func NewLTSVReader() repository.LTSVReader {
-	return &ltsvReader{}
+func NewLTSVReader(awsClient S3Client) repository.LTSVReader {
+	return &ltsvReader{awsClient: awsClient}
 }
 
 // ReadLTSV read records from LTSV files and return them as model.LTSV.
 func (l *ltsvReader) ReadLTSV(ctx context.Context, file *model.File) (*model.Table, error) {
-	ioReader, closer, err := ioReader(ctx, file)
+	ioReader, closer, err := ioReader(ctx, file, l.awsClient)
 	if err != nil {
 		return nil, err
 	}
@@ -153,9 +159,18 @@ func (l *ltsvReader) labelAndData(s string) (string, string, error) {
 // ioReader returns io.Reader, closer and error.
 // If file is HTTP protocol, it returns io.Reader from HTTP response body.
 // If file is not HTTP protocol, it returns io.Reader from file.
-func ioReader(ctx context.Context, file *model.File) (io.Reader, func() error, error) {
+func ioReader(ctx context.Context, file *model.File, s3Client S3Client) (io.Reader, func() error, error) {
+	if file.IsS3Protocol() {
+		// Assume file.BucketAndKey splits the path correctly.
+		bucket, key := file.BucketAndKey()
+		rc, err := s3Client.GetObject(ctx, bucket, key)
+		if err != nil {
+			return nil, nil, err
+		}
+		return rc, func() error { return rc.Close() }, nil
+	}
+
 	if file.IsHTTPProtocol() {
-		// Assume FullURL returns the full URL (e.g. "https://example.com/path/to/file").
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, file.FullURL(), nil)
 		if err != nil {
 			return nil, nil, err
@@ -170,6 +185,8 @@ func ioReader(ctx context.Context, file *model.File) (io.Reader, func() error, e
 		}
 		return resp.Body, resp.Body.Close, nil
 	}
+
+	// Fallback: file:// protocol.
 	f, err := file.Open()
 	if err != nil {
 		return nil, nil, err
