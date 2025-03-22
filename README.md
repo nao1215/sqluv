@@ -65,7 +65,20 @@ If you select a history, the SQL query will be copied to the query text area.
 
 ### Read from a file
 
-Please specify a file path (or url) when executing the sqluv command. The file will be loaded before launching the TUI. When the sqluv import csv/tsv/ltsv, the sqluv checks the file extension and determines the file format. If the file extension is not csv/tsv/ltsv, the sqluv will display an error message. The sqluv does not automatically detect the file format.
+Please specify a file path (or url) when executing the sqluv command:
+
+```shell
+※ file at http/https
+sqluv https://raw.githubusercontent.com/nao1215/sqluv/refs/heads/main/testdata/actor.csv
+ 
+※ file at s3. file is compressed in gz format.
+sqluv s3://not-exist-s3-bucket/user.csv.gz
+ 
+※ Multiple files
+sqluv https://raw.githubusercontent.com/nao1215/sqluv/refs/heads/main/testdata/actor.csv s3://not-exist-s3-bucket/user.tsv testdata/sample.ltsv
+```
+
+The file will be loaded before launching the TUI. When the sqluv import csv/tsv/ltsv, the sqluv checks the file extension and determines the file format. If the file extension is not csv/tsv/ltsv, the sqluv will display an error message. The sqluv does not automatically detect the file format.
 
 ![sqluv_demo](./doc/image/demo.gif)
 
