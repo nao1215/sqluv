@@ -56,10 +56,10 @@ func (d *errorDialog) applyTheme(theme *Theme) {
 	d.SetBorderStyle(tcell.StyleDefault.
 		Foreground(colors.BorderFocus).
 		Background(colors.Background))
-	d.SetBorderStyle(tcell.StyleDefault.
-		Foreground(colors.BorderFocus).
-		Background(colors.Background))
 	d.SetButtonActivatedStyle(tcell.StyleDefault.
-		Foreground(colors.ButtonTextFocus).
-		Background(colors.Button))
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus))
+	d.SetButtonStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
 }
