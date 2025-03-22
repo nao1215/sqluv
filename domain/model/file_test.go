@@ -72,6 +72,34 @@ func TestFileIsCSV(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "file is csv.gz",
+			fields: fields{
+				path: "test.csv.gz",
+			},
+			want: true,
+		},
+		{
+			name: "file is csv.bz2",
+			fields: fields{
+				path: "test.csv.bz2",
+			},
+			want: true,
+		},
+		{
+			name: "file is csv.xz",
+			fields: fields{
+				path: "test.csv.xz",
+			},
+			want: true,
+		},
+		{
+			name: "file is csv.zst",
+			fields: fields{
+				path: "test.csv.zst",
+			},
+			want: true,
+		},
+		{
 			name: "file is not csv",
 			fields: fields{
 				path: "test.tsv",
@@ -108,6 +136,34 @@ func TestFileIsTSV(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "file is tsv.gz",
+			fields: fields{
+				path: "test.tsv.gz",
+			},
+			want: true,
+		},
+		{
+			name: "file is tsv.bz2",
+			fields: fields{
+				path: "test.tsv.bz2",
+			},
+			want: true,
+		},
+		{
+			name: "file is tsv.xz",
+			fields: fields{
+				path: "test.tsv.xz",
+			},
+			want: true,
+		},
+		{
+			name: "file is tsv.zst",
+			fields: fields{
+				path: "test.tsv.zst",
+			},
+			want: true,
+		},
+		{
 			name: "file is not tsv",
 			fields: fields{
 				path: "test.ltsv",
@@ -140,6 +196,34 @@ func TestFileIsLTSV(t *testing.T) {
 			name: "file is ltsv",
 			fields: fields{
 				path: "test.ltsv",
+			},
+			want: true,
+		},
+		{
+			name: "file is ltsv.gz",
+			fields: fields{
+				path: "test.ltsv.gz",
+			},
+			want: true,
+		},
+		{
+			name: "file is ltsv.bz2",
+			fields: fields{
+				path: "test.ltsv.bz2",
+			},
+			want: true,
+		},
+		{
+			name: "file is ltsv.xz",
+			fields: fields{
+				path: "test.ltsv.xz",
+			},
+			want: true,
+		},
+		{
+			name: "file is ltsv.zst",
+			fields: fields{
+				path: "test.ltsv.zst",
 			},
 			want: true,
 		},
@@ -236,9 +320,9 @@ func TestFileNameWithoutExt(t *testing.T) {
 		{
 			name: "file with multiple dots",
 			fields: fields{
-				path: "test.data.csv",
+				path: "test.csv.gz",
 			},
-			want: "test.data",
+			want: "test",
 		},
 		{
 			name: "hidden file",

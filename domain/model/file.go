@@ -39,18 +39,69 @@ func NewFile(
 	}, nil
 }
 
-// IsCSV return true if file is csv.
+// IsCSV returns true if the file is a CSV.
+// It now also returns true for files ending with .csv.gz or .csv.xz.
 func (f *File) IsCSV() bool {
+	if f.IsGZ() {
+		base := strings.TrimSuffix(f.path, ".gz")
+		return strings.HasSuffix(base, ".csv")
+	}
+	if f.IsBZ2() {
+		base := strings.TrimSuffix(f.path, ".bz2")
+		return strings.HasSuffix(base, ".csv")
+	}
+	if f.IsXZ() {
+		base := strings.TrimSuffix(f.path, ".xz")
+		return strings.HasSuffix(base, ".csv")
+	}
+	if f.IsZSTD() {
+		base := strings.TrimSuffix(f.path, ".zst")
+		return strings.HasSuffix(base, ".csv")
+	}
 	return strings.HasSuffix(f.path, ".csv")
 }
 
-// IsTSV return true if file is tsv.
+// IsTSV returns true if the file is a TSV.
+// It now also returns true for files ending with .tsv.gz or .tsv.xz.
 func (f *File) IsTSV() bool {
+	if f.IsGZ() {
+		base := strings.TrimSuffix(f.path, ".gz")
+		return strings.HasSuffix(base, ".tsv")
+	}
+	if f.IsBZ2() {
+		base := strings.TrimSuffix(f.path, ".bz2")
+		return strings.HasSuffix(base, ".tsv")
+	}
+	if f.IsXZ() {
+		base := strings.TrimSuffix(f.path, ".xz")
+		return strings.HasSuffix(base, ".tsv")
+	}
+	if f.IsZSTD() {
+		base := strings.TrimSuffix(f.path, ".zst")
+		return strings.HasSuffix(base, ".tsv")
+	}
 	return strings.HasSuffix(f.path, ".tsv")
 }
 
-// IsLTSV return true if file is ltsv.
+// IsLTSV returns true if the file is a LTSV.
+// It now also returns true for files ending with .ltsv.gz or .ltsv.xz.
 func (f *File) IsLTSV() bool {
+	if f.IsGZ() {
+		base := strings.TrimSuffix(f.path, ".gz")
+		return strings.HasSuffix(base, ".ltsv")
+	}
+	if f.IsBZ2() {
+		base := strings.TrimSuffix(f.path, ".bz2")
+		return strings.HasSuffix(base, ".ltsv")
+	}
+	if f.IsXZ() {
+		base := strings.TrimSuffix(f.path, ".xz")
+		return strings.HasSuffix(base, ".ltsv")
+	}
+	if f.IsZSTD() {
+		base := strings.TrimSuffix(f.path, ".zst")
+		return strings.HasSuffix(base, ".ltsv")
+	}
 	return strings.HasSuffix(f.path, ".ltsv")
 }
 
@@ -60,18 +111,16 @@ func (f *File) Open() (*os.File, error) {
 }
 
 // NameWithoutExt return file name without extension.
+// e.g. "/home/nao/test.csv" -> "test"、"test.csv.gz" -> "test", ".gitignore" -> ".gitignore"
 func (f *File) NameWithoutExt() string {
-	filename := filepath.Base(f.path)
-	ext := filepath.Ext(filename)
-
-	// Handle hidden files (starting with a dot)
-	if strings.HasPrefix(filename, ".") {
-		// If the filename is just a dot (like ".gitignore"), keep it as is
-		if filename == ext {
-			return filename
-		}
+	base := filepath.Base(f.path)
+	if base[0] == '.' {
+		return base
 	}
-	return strings.TrimSuffix(filename, ext)
+	if idx := strings.Index(base, "."); idx != -1 {
+		return base[:idx]
+	}
+	return base
 }
 
 // IsFileProtocol return true if file protocol is file://.
@@ -103,4 +152,24 @@ func (f *File) BucketAndKey() (string, string) {
 		return strings.Split(f.path, "/")[0], strings.Split(f.path, "/")[1]
 	}
 	return strings.Split(f.path, "/")[0], ""
+}
+
+// IsGZ returns true if the file has a .gz extension.
+func (f *File) IsGZ() bool {
+	return strings.HasSuffix(f.path, ".gz")
+}
+
+// IsBZ2 returns true if the file has a .bz2 extension.
+func (f *File) IsBZ2() bool {
+	return strings.HasSuffix(f.path, ".bz2")
+}
+
+// IsXZ returns true if the file is compressed with xz (.xz).
+func (f *File) IsXZ() bool {
+	return strings.HasSuffix(f.path, ".xz")
+}
+
+// IsZSTD returns true if the file has a .zstd extension.
+func (f *File) IsZSTD() bool {
+	return strings.HasSuffix(f.path, ".zst")
 }
