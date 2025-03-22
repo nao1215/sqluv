@@ -1,6 +1,8 @@
 package persistence
 
 import (
+	"compress/bzip2"
+	"compress/gzip"
 	"context"
 	"encoding/csv"
 	"fmt"
@@ -9,9 +11,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/klauspost/compress/zstd"
 	"github.com/nao1215/sqluv/domain/model"
 	"github.com/nao1215/sqluv/domain/repository"
 	"github.com/nao1215/sqluv/infrastructure"
+	"github.com/ulikunitz/xz"
 )
 
 // _ interface implementation check
@@ -159,34 +163,113 @@ func (l *ltsvReader) labelAndData(s string) (string, string, error) {
 // ioReader returns io.Reader, closer and error.
 // If file is HTTP protocol, it returns io.Reader from HTTP response body.
 // If file is not HTTP protocol, it returns io.Reader from file.
+// If the file is gzip compressed (as indicated by File.IsGZ),
+// it wraps the underlying reader with gzip.NewReader.
 func ioReader(ctx context.Context, file *model.File, s3Client S3Client) (io.Reader, func() error, error) {
+	var reader io.Reader
+	var closer func() error
+	var err error
+
 	if file.IsS3Protocol() {
-		// Assume file.BucketAndKey splits the path correctly.
-		bucket, key := file.BucketAndKey()
-		rc, err := s3Client.GetObject(ctx, bucket, key)
-		if err != nil {
-			return nil, nil, err
-		}
-		return rc, func() error { return rc.Close() }, nil
+		reader, closer, err = ioReaderFromS3(ctx, file, s3Client)
+	} else if file.IsHTTPProtocol() {
+		reader, closer, err = ioReaderFromHTTP(ctx, file)
+	} else {
+		reader, closer, err = ioReaderFromFile(file)
+	}
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if file.IsHTTPProtocol() {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, file.FullURL(), nil)
-		if err != nil {
-			return nil, nil, err
-		}
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return nil, nil, err
-		}
-		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			return nil, nil, fmt.Errorf("remote file request failed with status: %s", resp.Status)
-		}
-		return resp.Body, resp.Body.Close, nil
-	}
+	return wrapCompressedReader(file, reader, closer)
+}
 
-	// Fallback: file:// protocol.
+func wrapCompressedReader(file *model.File, reader io.Reader, closer func() error) (io.Reader, func() error, error) {
+	if file.IsGZ() {
+		return wrapGZReader(reader, closer)
+	}
+	if file.IsBZ2() {
+		return wrapBZ2Reader(reader, closer)
+	}
+	if file.IsXZ() {
+		return wrapXZReader(reader, closer)
+	}
+	if file.IsZSTD() {
+		return wrapZstdReader(reader, closer)
+	}
+	return reader, closer, nil
+}
+
+func wrapGZReader(reader io.Reader, closer func() error) (io.Reader, func() error, error) {
+	gzReader, err := gzip.NewReader(reader)
+	if err != nil {
+		closer()
+		return nil, nil, err
+	}
+	newCloser := func() error {
+		if err := gzReader.Close(); err != nil {
+			return err
+		}
+		return closer()
+	}
+	return gzReader, newCloser, nil
+}
+
+func wrapBZ2Reader(reader io.Reader, closer func() error) (io.Reader, func() error, error) {
+	bz2Reader := bzip2.NewReader(reader)
+	return bz2Reader, closer, nil
+}
+
+func wrapXZReader(reader io.Reader, closer func() error) (io.Reader, func() error, error) {
+	xzReader, err := xz.NewReader(reader)
+	if err != nil {
+		closer()
+		return nil, nil, err
+	}
+	// xzReader doesn't require a close; use original closer.
+	return xzReader, closer, nil
+}
+
+func wrapZstdReader(reader io.Reader, closer func() error) (io.Reader, func() error, error) {
+	decoder, err := zstd.NewReader(reader)
+	if err != nil {
+		closer()
+		return nil, nil, err
+	}
+	newCloser := func() error {
+		decoder.Close()
+		return closer()
+	}
+	return decoder, newCloser, nil
+}
+
+func ioReaderFromS3(ctx context.Context, file *model.File, s3Client S3Client) (io.Reader, func() error, error) {
+	// Assume file.BucketAndKey splits the path correctly.
+	bucket, key := file.BucketAndKey()
+	rc, err := s3Client.GetObject(ctx, bucket, key)
+	if err != nil {
+		return nil, nil, err
+	}
+	return rc, func() error { return rc.Close() }, nil
+}
+
+func ioReaderFromHTTP(ctx context.Context, file *model.File) (io.Reader, func() error, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, file.FullURL(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, nil, fmt.Errorf("remote file request failed with status: %s", resp.Status)
+	}
+	return resp.Body, resp.Body.Close, nil
+}
+
+func ioReaderFromFile(file *model.File) (io.Reader, func() error, error) {
 	f, err := file.Open()
 	if err != nil {
 		return nil, nil, err
