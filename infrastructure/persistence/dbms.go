@@ -31,11 +31,11 @@ func (e *queryExecutor) ExecuteQuery(ctx context.Context, sql *model.SQL) (*mode
 	}
 	defer tx.Rollback()
 
-	table, err := infrastructure.Query(ctx, tx, sql.String())
+	table, err := infrastructure.Query(ctx, tx, sql)
 	if err != nil {
 		return nil, err
 	}
-	return model.NewTable(infrastructure.ExtractTableName(sql.String()), table.Header(), table.Records()), nil
+	return model.NewTable(infrastructure.ExtractTableName(sql), table.Header(), table.Records()), nil
 }
 
 // _ interface implementation check

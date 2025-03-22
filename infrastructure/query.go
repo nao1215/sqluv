@@ -9,8 +9,8 @@ import (
 )
 
 // Query executes query.
-func Query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) {
-	rows, err := tx.QueryContext(ctx, query)
+func Query(ctx context.Context, tx *sql.Tx, query *model.SQL) (*model.Table, error) {
+	rows, err := tx.QueryContext(ctx, query.String())
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func Query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) 
 		return nil, ErrNoRows
 	}
 
-	scanDest := make([]interface{}, len(header))
+	scanDest := make([]any, len(header))
 	rawResult := make([][]byte, len(header))
 	for i := range header {
 		scanDest[i] = &rawResult[i]
@@ -54,8 +54,12 @@ func Query(ctx context.Context, tx *sql.Tx, query string) (*model.Table, error) 
 
 // ExtractTableName extract table name from query.
 // The query must be "SELECT" or "EXPLAIN" statement.
-func ExtractTableName(query string) string {
-	query = strings.ReplaceAll(query, "`", "")
+func ExtractTableName(sql *model.SQL) string {
+	if sql.IsWith() {
+		return ""
+	}
+
+	query := strings.ReplaceAll(sql.String(), "`", "")
 	words := strings.Fields(query)
 	for i, v := range words {
 		if strings.EqualFold(v, "FROM") || strings.EqualFold(v, "from") {

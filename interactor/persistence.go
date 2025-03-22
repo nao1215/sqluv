@@ -29,7 +29,7 @@ func NewQueryExecutor(
 
 // ExecuteQuery executes a query in MySQL database.
 func (m *queryExecutor) ExecuteQuery(ctx context.Context, sql *model.SQL) (*usecase.ExecuteQueryOutput, error) {
-	if sql.IsSelect() || sql.IsExplain() {
+	if sql.IsSelect() || sql.IsExplain() || sql.IsWith() {
 		table, err := m.QueryToRemoteExecutor.ExecuteQuery(ctx, sql)
 		if err != nil {
 			return nil, err
