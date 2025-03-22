@@ -22,14 +22,8 @@ type connectionModal struct {
 // newConnectionModal creates a new connection modal
 func newConnectionModal(app *tview.Application, theme *Theme, onClose func(conn *config.DBConnection)) *connectionModal {
 	modal := tview.NewModal().
-		SetText("No local files found. Would you like to connect to a database?").
+		SetText("You does not specify files. Would you like to connect to a database?").
 		AddButtons([]string{"New", "List", "Cancel"})
-
-	colors := theme.GetColors()
-	modal.SetBackgroundColor(colors.Background)
-	modal.SetTextColor(colors.Foreground)
-	modal.SetButtonBackgroundColor(colors.Button)
-	modal.SetButtonTextColor(colors.ButtonText)
 
 	// Create config manager
 	configMgr, err := config.NewDBConfig()
@@ -222,6 +216,9 @@ func (cm *connectionModal) showNewConnectionForm() {
 	form.SetButtonStyle(tcell.StyleDefault.
 		Background(colors.Button).
 		Foreground(colors.ButtonText))
+	form.SetButtonActivatedStyle(tcell.StyleDefault.
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus))
 	form.SetFieldStyle(tcell.StyleDefault.
 		Background(colors.Background).
 		Foreground(colors.Foreground))
@@ -313,6 +310,19 @@ func (cm *connectionModal) showError(message string) {
 		SetDoneFunc(func(_ int, _ string) {
 			cm.app.SetRoot(cm.Modal, true)
 		})
+
+	colors := cm.theme.GetColors()
+	errorModal.SetBackgroundColor(colors.Background)
+	errorModal.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.BorderFocus))
+	errorModal.SetButtonActivatedStyle(tcell.StyleDefault.
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus))
+	errorModal.SetButtonStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+	errorModal.SetFocus(0)
 
 	cm.app.SetRoot(errorModal, true)
 }

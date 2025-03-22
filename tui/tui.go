@@ -267,7 +267,20 @@ func (t *TUI) showFailedConnectionDialog(conn *config.DBConnection, err error) {
 			connectionModal := newConnectionModal(t.app, t.theme, t.handleConnectionSelection)
 			t.app.SetRoot(connectionModal.Modal, true)
 		})
-	t.app.SetRoot(errorModal, true)
+
+	colors := t.theme.GetColors()
+	errorModal.SetBorderStyle(tcell.StyleDefault.
+		Foreground(colors.BorderFocus).
+		Background(colors.Background))
+	errorModal.SetButtonActivatedStyle(tcell.StyleDefault.
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus))
+	errorModal.SetButtonStyle(tcell.StyleDefault.
+		Background(colors.Button).
+		Foreground(colors.ButtonText))
+	errorModal.SetBackgroundColor(colors.Background)
+
+	t.app.SetRoot(errorModal, true).SetFocus(errorModal)
 }
 
 // removeConnectionFromConfig removes a connection from the saved configurations
