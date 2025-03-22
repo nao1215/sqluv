@@ -20,10 +20,11 @@ go install github.com/nao1215/sqluv@latest
 brew install nao1215/tap/sqluv
 ```
 
-## Supported OS, File Format, DBMS, go version
+## Supported OS, File Format, Compressed Format, DBMS, go version
 
 - Windows/macOS/Linux
 - CSV/TSV/LTSV (file://, http://, https://)
+- gz/bz2/xz/zst
 - MySQL/PostgreSQL/SQLite3/SQL Server
 - go1.24 or later
 
