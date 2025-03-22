@@ -1,7 +1,3 @@
--- データベースが存在しない場合は作成
-CREATE DATABASE IF NOT EXISTS mydatabase;
-USE mydatabase;
-
 -- users テーブル (ユーザー情報)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,7 +11,6 @@ CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    total_amount DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -35,10 +30,10 @@ INSERT INTO users (name, email) VALUES
 ('Bob', 'bob@example.com'),
 ('Charlie', 'charlie@example.com');
 
-INSERT INTO orders (user_id, total_amount) VALUES 
-(1, 150.00),
-(2, 200.50),
-(3, 99.99);
+INSERT INTO orders (user_id) VALUES 
+(1),
+(2),
+(3);
 
 INSERT INTO order_items (order_id, product_name, quantity, price) VALUES 
 (1, 'Laptop', 1, 150.00),
