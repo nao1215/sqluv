@@ -1,11 +1,13 @@
 ![dbms_demo](doc/image/dbms_demo.gif)
 
-The **sqluv (sql + love)** provides a simple text user interface for multiple DBMSs and CSV/TSV/LTSV (local/http/https/s3) files. The sqluv automatically decompresses compressed files in gz, bz2, xz, and zst formats. You execute SQL queries for the connected DBMS or local/http/https files. The sqluv has the color theme feature, so you can change the color theme to your liking.
+The **sqluv (sql + love)** provides a simple text user interface for multiple RDBMSs, CSV/TSV/LTSV. The sqluv import CSV, TSV, and LTSV files from local storage, HTTPS, and Amazon S3 into SQLite3 (in-memory) and execute SQL queries. The sqluv automatically decompresses compressed files in gz, bz2, xz, and zst formats. 
+
+Additionally, the sqluv offers features such as saving connection information for target RDBMS, managing execution history of SQL queries, and a variety of color themes.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
 >[!WARNING]
-> sqluv is under development. You use sqluv for **viewer**. Do not execute UPDATE or DELETE in the production environment. sqluv can not update or delete data in the local file, but it can update or delete data in the connected DBMS.
+> sqluv is under development. You use sqluv for **viewer**. Do not execute UPDATE or DELETE in the production environment. sqluv can not update or delete data in the file, but it can update or delete data in the connected DBMS.
 
 ## How to install
 ### Use "go install"
@@ -63,7 +65,7 @@ If you select a history, the SQL query will be copied to the query text area.
 ![history_list](./doc/image/sql_query_history.png)
 
 
-### Read from a file
+### Import CSV/TSV/LTSV
 
 Please specify a file path (or url) when executing the sqluv command:
 
@@ -149,6 +151,7 @@ The file will be loaded before launching the TUI. When the sqluv import csv/tsv/
 
 First off, thanks for taking the time to contribute! See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information. Contributions are not only related to development. For example, GitHub Star motivates me to develop! 
 
+If you introduce sqluv on social media or blogs, more users will discover it, and we can gather more ideas for improvement. We hope you enjoy using sqluv!
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nao1215/sqluv&type=Date)](https://star-history.com/#nao1215/sqluv&Date)
 
