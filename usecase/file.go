@@ -14,4 +14,9 @@ type (
 	FileReader interface {
 		Read(ctx context.Context, file *model.File) (*model.Table, error)
 	}
+
+	// FileWriter is an interface for writing records to CSV/TSV/LTSV files.
+	FileWriter interface {
+		WriteFile(ctx context.Context, file *model.File, table *model.Table) error
+	}
 )

@@ -276,3 +276,91 @@ func ioReaderFromFile(file *model.File) (io.Reader, func() error, error) {
 	}
 	return f, f.Close, nil
 }
+
+// _ interface implementation check
+var _ repository.CSVWriter = (*csvWriter)(nil)
+
+type csvWriter struct{}
+
+// NewCSVWriter return new CSVWriter.
+func NewCSVWriter() repository.CSVWriter {
+	return &csvWriter{}
+}
+
+// WriteCSV write records to CSV files.
+func (c *csvWriter) WriteCSV(_ context.Context, file *model.File, table *model.Table) error {
+	f, err := file.Create()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	records := [][]string{
+		table.Header(),
+	}
+	for _, v := range table.Records() {
+		records = append(records, v)
+	}
+	return w.WriteAll(records)
+}
+
+// _ interface implementation check
+var _ repository.TSVWriter = (*tsvWriter)(nil)
+
+type tsvWriter struct{}
+
+// NewTSVWriter return new TSVWriter.
+func NewTSVWriter() repository.TSVWriter {
+	return &tsvWriter{}
+}
+
+// WriteTSV write records to TSV files.
+func (t *tsvWriter) WriteTSV(_ context.Context, file *model.File, table *model.Table) error {
+	f, err := file.Create()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	w.Comma = '\t'
+	records := [][]string{
+		table.Header(),
+	}
+	for _, v := range table.Records() {
+		records = append(records, v)
+	}
+	return w.WriteAll(records)
+}
+
+// _ interface implementation check
+var _ repository.LTSVWriter = (*ltsvWriter)(nil)
+
+type ltsvWriter struct{}
+
+// NewLTSVWriter return new LTSVWriter.
+func NewLTSVWriter() repository.LTSVWriter {
+	return &ltsvWriter{}
+}
+
+// WriteLTSV write records to LTSV files.
+func (l *ltsvWriter) WriteLTSV(_ context.Context, file *model.File, table *model.Table) error {
+	f, err := file.Create()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	w.Comma = '\t'
+	records := [][]string{}
+	for _, v := range table.Records() {
+		r := model.Record{}
+		for i, data := range v {
+			r = append(r, table.Header()[i]+":"+data)
+		}
+		records = append(records, r)
+	}
+	return w.WriteAll(records)
+}

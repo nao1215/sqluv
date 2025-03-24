@@ -80,6 +80,68 @@ func (c *MockCSVReaderReadCSVCall) DoAndReturn(f func(context.Context, *model.Fi
 	return c
 }
 
+// MockCSVWriter is a mock of CSVWriter interface.
+type MockCSVWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockCSVWriterMockRecorder
+	isgomock struct{}
+}
+
+// MockCSVWriterMockRecorder is the mock recorder for MockCSVWriter.
+type MockCSVWriterMockRecorder struct {
+	mock *MockCSVWriter
+}
+
+// NewMockCSVWriter creates a new mock instance.
+func NewMockCSVWriter(ctrl *gomock.Controller) *MockCSVWriter {
+	mock := &MockCSVWriter{ctrl: ctrl}
+	mock.recorder = &MockCSVWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCSVWriter) EXPECT() *MockCSVWriterMockRecorder {
+	return m.recorder
+}
+
+// WriteCSV mocks base method.
+func (m *MockCSVWriter) WriteCSV(ctx context.Context, file *model.File, table *model.Table) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteCSV", ctx, file, table)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteCSV indicates an expected call of WriteCSV.
+func (mr *MockCSVWriterMockRecorder) WriteCSV(ctx, file, table any) *MockCSVWriterWriteCSVCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCSV", reflect.TypeOf((*MockCSVWriter)(nil).WriteCSV), ctx, file, table)
+	return &MockCSVWriterWriteCSVCall{Call: call}
+}
+
+// MockCSVWriterWriteCSVCall wrap *gomock.Call
+type MockCSVWriterWriteCSVCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockCSVWriterWriteCSVCall) Return(arg0 error) *MockCSVWriterWriteCSVCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockCSVWriterWriteCSVCall) Do(f func(context.Context, *model.File, *model.Table) error) *MockCSVWriterWriteCSVCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockCSVWriterWriteCSVCall) DoAndReturn(f func(context.Context, *model.File, *model.Table) error) *MockCSVWriterWriteCSVCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // MockTSVReader is a mock of TSVReader interface.
 type MockTSVReader struct {
 	ctrl     *gomock.Controller
@@ -143,6 +205,68 @@ func (c *MockTSVReaderReadTSVCall) DoAndReturn(f func(context.Context, *model.Fi
 	return c
 }
 
+// MockTSVWriter is a mock of TSVWriter interface.
+type MockTSVWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockTSVWriterMockRecorder
+	isgomock struct{}
+}
+
+// MockTSVWriterMockRecorder is the mock recorder for MockTSVWriter.
+type MockTSVWriterMockRecorder struct {
+	mock *MockTSVWriter
+}
+
+// NewMockTSVWriter creates a new mock instance.
+func NewMockTSVWriter(ctrl *gomock.Controller) *MockTSVWriter {
+	mock := &MockTSVWriter{ctrl: ctrl}
+	mock.recorder = &MockTSVWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTSVWriter) EXPECT() *MockTSVWriterMockRecorder {
+	return m.recorder
+}
+
+// WriteTSV mocks base method.
+func (m *MockTSVWriter) WriteTSV(ctx context.Context, file *model.File, table *model.Table) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteTSV", ctx, file, table)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteTSV indicates an expected call of WriteTSV.
+func (mr *MockTSVWriterMockRecorder) WriteTSV(ctx, file, table any) *MockTSVWriterWriteTSVCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteTSV", reflect.TypeOf((*MockTSVWriter)(nil).WriteTSV), ctx, file, table)
+	return &MockTSVWriterWriteTSVCall{Call: call}
+}
+
+// MockTSVWriterWriteTSVCall wrap *gomock.Call
+type MockTSVWriterWriteTSVCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockTSVWriterWriteTSVCall) Return(arg0 error) *MockTSVWriterWriteTSVCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockTSVWriterWriteTSVCall) Do(f func(context.Context, *model.File, *model.Table) error) *MockTSVWriterWriteTSVCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockTSVWriterWriteTSVCall) DoAndReturn(f func(context.Context, *model.File, *model.Table) error) *MockTSVWriterWriteTSVCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
 // MockLTSVReader is a mock of LTSVReader interface.
 type MockLTSVReader struct {
 	ctrl     *gomock.Controller
@@ -202,6 +326,68 @@ func (c *MockLTSVReaderReadLTSVCall) Do(f func(context.Context, *model.File) (*m
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
 func (c *MockLTSVReaderReadLTSVCall) DoAndReturn(f func(context.Context, *model.File) (*model.Table, error)) *MockLTSVReaderReadLTSVCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
+
+// MockLTSVWriter is a mock of LTSVWriter interface.
+type MockLTSVWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockLTSVWriterMockRecorder
+	isgomock struct{}
+}
+
+// MockLTSVWriterMockRecorder is the mock recorder for MockLTSVWriter.
+type MockLTSVWriterMockRecorder struct {
+	mock *MockLTSVWriter
+}
+
+// NewMockLTSVWriter creates a new mock instance.
+func NewMockLTSVWriter(ctrl *gomock.Controller) *MockLTSVWriter {
+	mock := &MockLTSVWriter{ctrl: ctrl}
+	mock.recorder = &MockLTSVWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLTSVWriter) EXPECT() *MockLTSVWriterMockRecorder {
+	return m.recorder
+}
+
+// WriteLTSV mocks base method.
+func (m *MockLTSVWriter) WriteLTSV(ctx context.Context, file *model.File, table *model.Table) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteLTSV", ctx, file, table)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteLTSV indicates an expected call of WriteLTSV.
+func (mr *MockLTSVWriterMockRecorder) WriteLTSV(ctx, file, table any) *MockLTSVWriterWriteLTSVCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteLTSV", reflect.TypeOf((*MockLTSVWriter)(nil).WriteLTSV), ctx, file, table)
+	return &MockLTSVWriterWriteLTSVCall{Call: call}
+}
+
+// MockLTSVWriterWriteLTSVCall wrap *gomock.Call
+type MockLTSVWriterWriteLTSVCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockLTSVWriterWriteLTSVCall) Return(arg0 error) *MockLTSVWriterWriteLTSVCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockLTSVWriterWriteLTSVCall) Do(f func(context.Context, *model.File, *model.Table) error) *MockLTSVWriterWriteLTSVCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockLTSVWriterWriteLTSVCall) DoAndReturn(f func(context.Context, *model.File, *model.Table) error) *MockLTSVWriterWriteLTSVCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

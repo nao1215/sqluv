@@ -6,6 +6,7 @@ import "github.com/google/wire"
 // Set is interactor providers.
 var Set = wire.NewSet(
 	NewFileReader,
+	NewFileWriter,
 	NewTableCreator,
 	NewLocalTablesGetter,
 	NewRecordsInserter,

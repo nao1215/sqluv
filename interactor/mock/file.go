@@ -79,3 +79,65 @@ func (c *MockFileReaderReadCall) DoAndReturn(f func(context.Context, *model.File
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }
+
+// MockFileWriter is a mock of FileWriter interface.
+type MockFileWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockFileWriterMockRecorder
+	isgomock struct{}
+}
+
+// MockFileWriterMockRecorder is the mock recorder for MockFileWriter.
+type MockFileWriterMockRecorder struct {
+	mock *MockFileWriter
+}
+
+// NewMockFileWriter creates a new mock instance.
+func NewMockFileWriter(ctrl *gomock.Controller) *MockFileWriter {
+	mock := &MockFileWriter{ctrl: ctrl}
+	mock.recorder = &MockFileWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFileWriter) EXPECT() *MockFileWriterMockRecorder {
+	return m.recorder
+}
+
+// WriteFile mocks base method.
+func (m *MockFileWriter) WriteFile(ctx context.Context, file *model.File, table *model.Table) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteFile", ctx, file, table)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteFile indicates an expected call of WriteFile.
+func (mr *MockFileWriterMockRecorder) WriteFile(ctx, file, table any) *MockFileWriterWriteFileCall {
+	mr.mock.ctrl.T.Helper()
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteFile", reflect.TypeOf((*MockFileWriter)(nil).WriteFile), ctx, file, table)
+	return &MockFileWriterWriteFileCall{Call: call}
+}
+
+// MockFileWriterWriteFileCall wrap *gomock.Call
+type MockFileWriterWriteFileCall struct {
+	*gomock.Call
+}
+
+// Return rewrite *gomock.Call.Return
+func (c *MockFileWriterWriteFileCall) Return(arg0 error) *MockFileWriterWriteFileCall {
+	c.Call = c.Call.Return(arg0)
+	return c
+}
+
+// Do rewrite *gomock.Call.Do
+func (c *MockFileWriterWriteFileCall) Do(f func(context.Context, *model.File, *model.Table) error) *MockFileWriterWriteFileCall {
+	c.Call = c.Call.Do(f)
+	return c
+}
+
+// DoAndReturn rewrite *gomock.Call.DoAndReturn
+func (c *MockFileWriterWriteFileCall) DoAndReturn(f func(context.Context, *model.File, *model.Table) error) *MockFileWriterWriteFileCall {
+	c.Call = c.Call.DoAndReturn(f)
+	return c
+}
