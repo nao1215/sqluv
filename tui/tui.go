@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/nao1215/sqluv/config"
 	"github.com/nao1215/sqluv/domain/model"
 	"github.com/nao1215/sqluv/infrastructure/persistence"
@@ -541,52 +542,108 @@ func (t *TUI) loadDatabaseTables(ctx context.Context, dbName string) {
 
 // showHistoryList displays a list of SQL query history and allows selection
 func (t *TUI) showHistoryList() {
-	ctx := context.Background()
-
-	// Get history from the database
-	histories, err := t.historyUsecases.historyLister.List(ctx)
+	histories, err := t.historyUsecases.historyLister.List(context.Background())
 	if err != nil {
-		t.showError(fmt.Errorf("failed to load history: %w", err))
+		t.showError(err)
 		return
 	}
-
 	if len(histories) == 0 {
 		t.showError(errors.New("no query history available"))
 		return
 	}
 
+	colors := t.theme.GetColors()
 	// Create a list to display history items
 	list := tview.NewList()
-	list.SetTitle("SQL Query History").SetBorder(true)
+	list.SetTitle("SQL Query History")
+	list.SetBorder(true)
+	list.SetTitleColor(colors.Header)
+	list.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Border).
+		Foreground(colors.BorderFocus))
+	list.SetBackgroundColor(colors.Background)
+	list.SetBorderStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.BorderFocus))
+	list.SetMainTextStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
+	list.SetSelectedStyle(tcell.StyleDefault.
+		Background(colors.BorderFocus).
+		Foreground(colors.Foreground))
 
-	// Add history items to the list in reverse order (newest first)
-	for i := len(histories) - 1; i >= 0; i-- {
-		history := histories[i]
-		displayText := normalizeSpaces(history.Request)
-		if len(displayText) > 75 {
-			displayText = displayText[:71] + "..."
+	// updateList refreshes the list using a fuzzy search query.
+	updateList := func(query string) {
+		list.Clear()
+		// Add history items in reverse order (newest first)
+		for i := len(histories) - 1; i >= 0; i-- {
+			history := histories[i]
+			displayText := normalizeSpaces(history.Request)
+
+			// If query is non-empty, filter with fuzzy matching
+			if query != "" && !fuzzy.Match(query, displayText) {
+				continue
+			}
+
+			if len(displayText) > 75 {
+				displayText = displayText[:71] + "..."
+			}
+			// Use closure to capture the correct history item.
+			func(h model.History) {
+				list.AddItem(displayText, "", 0, func() {
+					t.home.queryTextArea.SetText(h.Request, true)
+					t.app.SetRoot(t.home.flex, true)
+					t.app.SetFocus(t.home.queryTextArea)
+				})
+			}(history)
 		}
-
-		// Use a closure to capture the correct history item
-		func(h model.History) {
-			list.AddItem(displayText, "", 0, func() {
-				// Set the selected history item text in the query text area
-				t.home.queryTextArea.SetText(h.Request, true)
-				t.app.SetRoot(t.home.flex, true)
-				t.app.SetFocus(t.home.queryTextArea)
-			})
-		}(history)
 	}
 
-	// Add a "Cancel" button at the bottom
-	list.AddItem("Cancel", "Return without selecting history", '*', func() {
+	// Initial population of the list without a filter.
+	updateList("")
+	// Create an input field for fuzzy search.
+	searchInput := tview.NewInputField().
+		SetLabel("Fuzzy Search: ").
+		SetFieldStyle(tcell.StyleDefault.
+			Background(colors.Background).
+			Foreground(colors.Foreground)).
+		SetLabelStyle(tcell.StyleDefault.
+			Background(colors.Background).
+			Foreground(colors.Header)).
+		SetFieldTextColor(colors.SelectionText).
+		SetFieldWidth(0).
+		SetChangedFunc(func(text string) {
+			updateList(text)
+		})
+	searchInput.SetTitleColor(colors.Header)
+	searchInput.SetBackgroundColor(colors.Background)
+	searchInput.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTAB {
+			t.app.SetFocus(list)
+			return nil
+		}
+		return event
+	})
+
+	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTAB {
+			t.app.SetFocus(searchInput)
+			return nil
+		}
+		return event
+	})
+
+	// Create a layout using a vertical flex: search input on top, list below.
+	flex := tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(searchInput, 1, 0, true).
+		AddItem(list, 0, 1, false)
+
+	// Optional: add a cancel behavior when user finishes editing.
+	list.SetDoneFunc(func() {
 		t.app.SetRoot(t.home.flex, true)
 		t.app.SetFocus(t.home.queryTextArea)
 	})
-
-	// Show the list
-	t.app.SetRoot(list, true)
-	t.app.SetFocus(list)
+	t.app.SetRoot(flex, true)
 }
 
 var spaceRegex = regexp.MustCompile(`\s+`)
