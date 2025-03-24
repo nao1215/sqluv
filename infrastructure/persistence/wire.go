@@ -8,8 +8,11 @@ import (
 // Set is persistence providers.
 var Set = wire.NewSet(
 	NewCSVReader,
+	NewCSVWriter,
 	NewTSVReader,
+	NewTSVWriter,
 	NewLTSVReader,
+	NewLTSVWriter,
 	NewHistoryTableCreator,
 	NewHistoryCreator,
 	NewHistoryLister,

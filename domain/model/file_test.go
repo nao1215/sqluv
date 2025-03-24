@@ -566,3 +566,41 @@ func TestFile_BucketAndKey(t *testing.T) {
 		})
 	}
 }
+
+func TestFile_Create(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success to create file", func(t *testing.T) {
+		t.Parallel()
+
+		tmpDir := t.TempDir()
+		file, err := NewFile(filepath.Join(tmpDir, "sample.txt"))
+		if err != nil {
+			t.Errorf("error should be nil. got: %v", err)
+		}
+		f, err := file.Create()
+		if err != nil {
+			t.Errorf("error should be nil. got: %v", err)
+		}
+		t.Cleanup(func() {
+			f.Close()
+		})
+
+		if f.Name() != filepath.Join(tmpDir, "sample.txt") {
+			t.Errorf("file name is wrong. got: %s, want: %s", f.Name(), filepath.Join(tmpDir, "sample.txt"))
+		}
+	})
+
+	t.Run("fail to create file", func(t *testing.T) {
+		t.Parallel()
+
+		file, err := NewFile(filepath.Join("not_exist_dir", "sample.txt"))
+		if err != nil {
+			t.Error("error should not be nil")
+		}
+
+		if _, err = file.Create(); err == nil {
+			t.Error("error should not be nil")
+		}
+	})
+}

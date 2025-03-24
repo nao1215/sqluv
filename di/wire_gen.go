@@ -28,6 +28,10 @@ func NewSqluv(ctx context.Context, arg *config.Argument) (*tui.TUI, func(), erro
 	tsvReader := persistence.NewTSVReader(s3Client)
 	ltsvReader := persistence.NewLTSVReader(s3Client)
 	fileReader := interactor.NewFileReader(csvReader, tsvReader, ltsvReader)
+	csvWriter := persistence.NewCSVWriter()
+	tsvWriter := persistence.NewTSVWriter()
+	ltsvWriter := persistence.NewLTSVWriter()
+	fileWriter := interactor.NewFileWriter(csvWriter, tsvWriter, ltsvWriter)
 	memoryDB, cleanup, err := config.NewMemoryDB()
 	if err != nil {
 		return nil, nil, err
@@ -63,7 +67,7 @@ func NewSqluv(ctx context.Context, arg *config.Argument) (*tui.TUI, func(), erro
 		cleanup()
 		return nil, nil, err
 	}
-	tuiTUI := tui.NewTUI(arg, fileReader, usecaseTableCreator, usecaseTablesGetter, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
+	tuiTUI := tui.NewTUI(arg, fileReader, fileWriter, usecaseTableCreator, usecaseTablesGetter, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
 	return tuiTUI, func() {
 		cleanup2()
 		cleanup()

@@ -22,6 +22,7 @@ type (
 	// localUsecases represents use cases for local file operations
 	localUsecases struct {
 		fileReader     usecase.FileReader
+		fileWriter     usecase.FileWriter
 		tableCreator   usecase.TableCreator
 		tablesGetter   usecase.TablesGetter
 		sqlExecutor    usecase.SQLExecutor
@@ -32,6 +33,7 @@ type (
 	dbmsUsecases struct {
 		queryExecutor usecase.QueryExecutor
 		tablesGetter  usecase.TablesGetter
+		fileWriter    usecase.FileWriter
 
 		closeDB       func() // Added field for database cleanup function
 		isDBConnected bool   // Flag to track if we're connected to a database
@@ -64,6 +66,7 @@ type TUI struct {
 func NewTUI(
 	arg *config.Argument,
 	fileReader usecase.FileReader,
+	fileWriter usecase.FileWriter,
 	tableCreator usecase.TableCreator,
 	tablesGetter usecase.TablesGetter,
 	sqlExecuter usecase.SQLExecutor,
@@ -83,12 +86,15 @@ func NewTUI(
 		app:   app,
 		localUsecases: &localUsecases{
 			fileReader:     fileReader,
+			fileWriter:     fileWriter,
 			tableCreator:   tableCreator,
 			tablesGetter:   tablesGetter,
 			sqlExecutor:    sqlExecuter,
 			recordInserter: recordInserter,
 		},
-		dbmsUsecases: &dbmsUsecases{},
+		dbmsUsecases: &dbmsUsecases{
+			fileWriter: fileWriter,
+		},
 		historyUsecases: &historyUsecases{
 			historyTableCreator: historyTableCreator,
 			historyCreator:      historyCreator,

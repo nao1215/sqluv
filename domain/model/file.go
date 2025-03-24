@@ -110,6 +110,11 @@ func (f *File) Open() (*os.File, error) {
 	return os.Open(f.path)
 }
 
+// Create create file.
+func (f *File) Create() (*os.File, error) {
+	return os.Create(f.path)
+}
+
 // NameWithoutExt return file name without extension.
 // e.g. "/home/nao/test.csv" -> "test"、"test.csv.gz" -> "test", ".gitignore" -> ".gitignore"
 func (f *File) NameWithoutExt() string {
