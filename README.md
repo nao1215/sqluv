@@ -11,6 +11,7 @@ The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sq
 - Multi-DBMS Support: Connect and interact with popular database systems like MySQL, PostgreSQL, SQLite3, and SQL Server.
 - File Compatibility: Read data from files in CSV, TSV, and LTSV formats from HTTPS, S3, and local storage.
 - Support Compressed File: Automatically decompresses compressed files in .gz, .bz2, .xz, and .zst.
+- Query History: Save and access SQL query history for easy reference. Fuzzy search is also available.
 - Customizable Themes: sqluv supports multiple color themes, enabling customization of the interface based on user preference.
 
 ## How to install
@@ -68,9 +69,9 @@ If you execute a SQL query, the history will be saved in the `~/.config/sqluv/hi
 
 ![history_button](./doc/image/history_button.png)
 
-If you select a history, the SQL query will be copied to the query text area.
+The sqluv supports fuzzy search. You can search for the history by typing the keyword. If you select the history, the SQL query will be copied to the input field.
 
-![history_list](./doc/image/sql_query_history.png)
+![history_list](./doc/image/sql_query_history.gif)
 
 
 ### Import CSV/TSV/LTSV
