@@ -11,7 +11,7 @@ type home struct {
 	historyButton *historyButton
 	resultTable   *queryResultTable
 	footer        *footer
-	errorDialog   *errorDialog
+	dialog        *dialog
 	rowStatistics *rowStatistics
 }
 
@@ -55,7 +55,7 @@ func newHome(app *tview.Application, theme *Theme) *home {
 		executeButton: executeButton,
 		historyButton: historyButton,
 		resultTable:   resultTableComponent,
-		errorDialog:   newErrorDialog(app, theme),
+		dialog:        newDialog(app, theme),
 		footer:        footerComponent,
 		rowStatistics: rowStatisticsComponent,
 	}
@@ -75,5 +75,5 @@ func (h *home) applyTheme(theme *Theme) {
 	h.resultTable.applyTheme(theme)
 	h.footer.applyTheme(theme)
 	h.rowStatistics.applyTheme(theme)
-	h.errorDialog.applyTheme(theme)
+	h.dialog.applyTheme(theme)
 }

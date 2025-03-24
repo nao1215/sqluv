@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -59,7 +60,8 @@ type TUI struct {
 	dbConfig        *config.DBConfig // Database configuration manager
 	theme           *Theme
 
-	lastExecutionTime float64 // Time taken to execute the last query
+	lastExecutionTime float64      // Time taken to execute the last query
+	latestTable       *model.Table // Latest table fetched from the database
 }
 
 // NewTUI creates a new TUI instance.
@@ -337,7 +339,7 @@ func (t *TUI) hasLocalFiles() bool {
 
 // showError displays an error dialog with the given message
 func (t *TUI) showError(err error) {
-	t.home.errorDialog.Show(t.home.flex, err.Error())
+	t.home.dialog.Show(t.home.flex, "ERROR", err.Error())
 }
 
 func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
@@ -390,13 +392,15 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 			t.app.SetFocus(t.home.queryTextArea)
 			return nil
 		}
-
 	case event.Key() == tcell.KeyCtrlT:
 		t.theme.ShowColorSchemeSelector(func() {
 			t.app.SetRoot(t.home.flex, true)
 			t.app.SetFocus(t.home.queryTextArea)
 			t.refreshAllComponents()
 		})
+		return nil
+	case event.Key() == tcell.KeyCtrlS:
+		t.showSaveDialog()
 		return nil
 	}
 	return event
@@ -457,6 +461,7 @@ func (t *TUI) executeDBMSQuery(ctx context.Context, sql *model.SQL) error {
 		t.lastExecutionTime = time.Since(startTime).Seconds()
 		t.home.resultTable.update(output.Table(), t.home.rowStatistics, t.lastExecutionTime)
 		t.updateRowStatistics(output.Table(), startTime)
+		t.latestTable = output.Table()
 	}
 	return nil
 }
@@ -476,6 +481,7 @@ func (t *TUI) executeLocalQuery(ctx context.Context, sql *model.SQL) error {
 		t.lastExecutionTime = time.Since(startTime).Seconds()
 		t.home.resultTable.update(output.Table(), t.home.rowStatistics, t.lastExecutionTime)
 		t.updateRowStatistics(output.Table(), startTime)
+		t.latestTable = output.Table()
 	}
 	return nil
 }
@@ -608,4 +614,59 @@ func (t *TUI) updateRowStatistics(table *model.Table, startTime time.Time) {
 // refreshAllComponents new method to refresh all components with the current theme
 func (t *TUI) refreshAllComponents() {
 	t.home.applyTheme(t.theme)
+}
+
+// showSaveDialog displays an input form for the file path.
+func (t *TUI) showSaveDialog() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		cwd = ""
+	}
+
+	if t.latestTable == nil {
+		t.showError(errors.New("no query results to save"))
+		return
+	}
+
+	colors := t.theme.GetColors()
+
+	form := tview.NewForm()
+	form.AddInputField("Save File Path", cwd, 0, nil, nil).
+		AddButton("Save", func() {
+			filePath := form.GetFormItem(0).(*tview.InputField).GetText()
+			f, err := model.NewFile(filePath)
+			if err != nil {
+				t.showError(fmt.Errorf("failed to create file handle: %w", err))
+				return
+			}
+			if err := t.localUsecases.fileWriter.WriteFile(context.Background(), f, t.latestTable); err != nil {
+				t.showError(fmt.Errorf("failed to write file: %w", err))
+				return
+			}
+			t.home.dialog.Show(t.home.flex, " 🚀 ", "File saved successfully")
+		}).
+		AddButton("Cancel", func() {
+			t.app.SetRoot(t.home.flex, true)
+		})
+
+	form.SetBorder(true).
+		SetTitle("Save Query Results").
+		SetTitleAlign(tview.AlignCenter).
+		SetBorderStyle(tcell.StyleDefault.
+			Background(colors.Background).
+			Foreground(colors.BorderFocus))
+	form.SetButtonActivatedStyle(tcell.StyleDefault.
+		Background(colors.ButtonFocus).
+		Foreground(colors.ButtonTextFocus)).
+		SetButtonDisabledStyle(tcell.StyleDefault.
+			Background(colors.Button).
+			Foreground(colors.ButtonText)).
+		SetButtonStyle(tcell.StyleDefault.
+			Background(colors.Button).
+			Foreground(colors.ButtonText)).
+		SetFieldStyle(tcell.StyleDefault.
+			Background(colors.Background).
+			Foreground(colors.Foreground)).
+		SetBackgroundColor(colors.Background)
+	t.app.SetRoot(form, true)
 }

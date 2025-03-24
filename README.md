@@ -1,13 +1,17 @@
 ![dbms_demo](doc/image/dbms_demo.gif)
 
-The **sqluv (sql + love)** provides a simple text user interface for multiple RDBMSs, CSV/TSV/LTSV. The sqluv import CSV, TSV, and LTSV files from local storage, HTTPS, and Amazon S3 into SQLite3 (in-memory) and execute SQL queries. The sqluv automatically decompresses compressed files in gz, bz2, xz, and zst formats. 
-
-Additionally, the sqluv offers features such as saving connection information for target RDBMS, managing execution history of SQL queries, and a variety of color themes.
+The **sqluv (sql + love)** is a straightforward text-based user interface designed for interacting with various Relational Database Management Systems (RDBMS) as well as CSV, TSV, and LTSV files. The sqluv read CSV, TSV, and LTSV files from local storage, HTTPS, and Amazon S3. The sqluv automatically decompresses compressed files in .gz, .bz2, .xz, and .zst formats.With sqluv, executing SQL queries becomes a user-friendly experience, allowing seamless connections to databases or local files with ease.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
 
 >[!WARNING]
-> sqluv is under development. You use sqluv for **viewer**. Do not execute UPDATE or DELETE in the production environment. sqluv can not update or delete data in the file, but it can update or delete data in the connected DBMS.
+> sqluv is under development. You use sqluv for **viewer**. Do not execute UPDATE or DELETE in the production environment.
+
+## Key Features
+- Multi-DBMS Support: Connect and interact with popular database systems like MySQL, PostgreSQL, SQLite3, and SQL Server.
+- File Compatibility: Read data from files in CSV, TSV, and LTSV formats from HTTPS, S3, and local storage.
+- Support Compressed File: Automatically decompresses compressed files in .gz, .bz2, .xz, and .zst.
+- Customizable Themes: sqluv supports multiple color themes, enabling customization of the interface based on user preference.
 
 ## How to install
 ### Use "go install"
@@ -34,9 +38,13 @@ brew install nao1215/tap/sqluv
 
 ### Syntax
 
+The sqluv interface prioritizes ease of use. Upon launching without specifying a file path, users are prompted to enter connection details for their database. Configuration is saved, allowing for easy reconnections in the future. Below is a brief overview of the capabilities:
+
 ```shell
-sqluv [FILE_PATHS/HTTP URL/HTTPS URL]  ※ Supported file formats: CSV, TSV, LTSV
+sqluv [FILE_PATHS/HTTPS URL/S3 URL]  ※ Supported file formats: CSV, TSV, LTSV
 ```
+
+By running this command with the relevant file paths, users can initiate interactions with files.
 
 ### Connect to DBMS
 
@@ -84,6 +92,12 @@ The file will be loaded before launching the TUI. When the sqluv import csv/tsv/
 
 ![sqluv_demo](./doc/image/demo.gif)
 
+### Save the result to a file
+
+You can save the result to a file by pressing the `Ctrl + s` key. The sqluv will ask you to enter the file path. The supported file formats are CSV, TSV, and LTSV.
+
+![save_result](./doc/image/file_save.png)
+
 ## Key bindings
 
 | Key | Description |
@@ -93,6 +107,7 @@ The file will be loaded before launching the TUI. When the sqluv import csv/tsv/
 | Ctrl + c | Copy the selected sql query |
 | Ctrl + v | Paste the copied text |
 | Ctrl + x | Cut the selected text |
+| Ctrl + s | Save the result to a file |
 | Ctrl + t | Change the theme |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |

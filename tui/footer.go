@@ -1,6 +1,9 @@
 package tui
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/rivo/tview"
 )
 
@@ -50,13 +53,13 @@ func (f *footer) update() {
 
 	// Build shortcuts text with formatting
 	text := ""
-	for key, description := range f.shortcuts {
+	for _, key := range slices.Sorted(maps.Keys(f.shortcuts)) {
 		if text != "" {
 			text += " | "
 		}
 		// Use the header color from theme for shortcuts
 		text += "[" + colors.Header.String() + "]" + key +
-			"[" + colors.Foreground.String() + "]: " + description
+			"[" + colors.Foreground.String() + "]: " + f.shortcuts[key]
 	}
 	f.SetText(text)
 }
@@ -68,6 +71,7 @@ func (f *footer) setDefaulShortcut() {
 	f.addShortcut("Esc", "Quit")
 	f.addShortcut("TAB", "Change focus")
 	f.addShortcut("Ctrl-T", "Theme selector")
+	f.addShortcut("Ctrl-S", "Save")
 	f.update()
 }
 

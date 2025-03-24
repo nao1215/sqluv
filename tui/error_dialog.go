@@ -5,17 +5,17 @@ import (
 	"github.com/rivo/tview"
 )
 
-// errorDialog represents a modal dialog for displaying error messages
-type errorDialog struct {
+// dialog represents a modal dialog for displaying error messages, or other.
+type dialog struct {
 	*tview.Modal
 	previousPage tview.Primitive
 	app          *tview.Application
 }
 
-// newErrorDialog creates a new error dialog
-func newErrorDialog(app *tview.Application, theme *Theme) *errorDialog {
+// newDialog creates a new error dialog
+func newDialog(app *tview.Application, theme *Theme) *dialog {
 	modal := tview.NewModal()
-	errorDialog := &errorDialog{
+	errorDialog := &dialog{
 		Modal:        modal,
 		app:          app,
 		previousPage: nil,
@@ -23,19 +23,19 @@ func newErrorDialog(app *tview.Application, theme *Theme) *errorDialog {
 
 	// Initial styling - will be properly themed later
 	modal.SetBorder(true).
-		SetTitleAlign(tview.AlignCenter).
-		SetTitle(" ERROR ")
+		SetTitleAlign(tview.AlignCenter)
 
 	errorDialog.applyTheme(theme)
 	return errorDialog
 }
 
-// Show displays the error dialog with the given message
+// Show displays the dialog with the given message
 // and returns to the previous page when Enter is pressed
-func (d *errorDialog) Show(previousPage tview.Primitive, errorMsg string) {
+func (d *dialog) Show(previousPage tview.Primitive, title, msg string) {
 	d.previousPage = previousPage
 
-	d.SetText(errorMsg).
+	d.SetTitle(title)
+	d.SetText(msg).
 		ClearButtons().
 		AddButtons([]string{"OK"}).
 		SetDoneFunc(func(_ int, _ string) {
@@ -44,7 +44,7 @@ func (d *errorDialog) Show(previousPage tview.Primitive, errorMsg string) {
 	d.app.SetRoot(d.Modal, true)
 }
 
-func (d *errorDialog) applyTheme(theme *Theme) {
+func (d *dialog) applyTheme(theme *Theme) {
 	colors := theme.GetColors()
 	d.SetBorderColor(colors.BorderFocus)
 	d.SetTextColor(colors.Foreground)

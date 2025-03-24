@@ -112,6 +112,12 @@ func (f *File) Open() (*os.File, error) {
 
 // Create create file.
 func (f *File) Create() (*os.File, error) {
+	dir := filepath.Dir(f.path)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return nil, err
+		}
+	}
 	return os.Create(f.path)
 }
 
