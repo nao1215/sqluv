@@ -24,7 +24,7 @@ func NewHistoryTableCreator(db config.HistoryDB) repository.HistoryTableCreator 
 	}
 }
 
-// CreateTable create a DB table for sqly shell history
+// CreateTable create a DB table for sqluv shell history
 func (h *historyTableCreator) CreateTable(ctx context.Context) error {
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {

@@ -20,7 +20,7 @@ func NewHistoryTableCreator(r repository.HistoryTableCreator) usecase.HistoryTab
 	return &historyTableCreator{r: r}
 }
 
-// CreateTable create table for sqly history.
+// CreateTable create table for sqluv history.
 func (hi *historyTableCreator) CreateTable(ctx context.Context) error {
 	return hi.r.CreateTable(ctx)
 }
