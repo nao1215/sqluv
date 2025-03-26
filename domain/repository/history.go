@@ -9,9 +9,9 @@ import (
 //go:generate mockgen -typed -source=$GOFILE -destination=../../infrastructure/mock/$GOFILE -package mock
 
 type (
-	// HistoryTableCreator is a repository that creates a table for sqly shell history.
+	// HistoryTableCreator is a repository that creates a table for sqluv shell history.
 	HistoryTableCreator interface {
-		// CreateTable create a DB table for sqly shell history
+		// CreateTable create a DB table for sqluv shell history
 		CreateTable(ctx context.Context) error
 	}
 

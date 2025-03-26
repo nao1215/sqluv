@@ -4,14 +4,14 @@ import (
 	"strconv"
 )
 
-// Histories is sqly history all record.
+// Histories is sqluv history all record.
 type Histories []History
 
-// History is sqly history record.
+// History is sqluv history record.
 type History struct {
 	// ID is history id. 1 is oldest
 	ID int
-	// Request is sqly history record that is user input from sqly prompt
+	// Request is sqluv history record that is user input from sqluv prompt
 	Request string
 }
 

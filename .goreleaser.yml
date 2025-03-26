@@ -1,4 +1,4 @@
-project_name: sqly
+project_name: sqluv
 env:
   - GO111MODULE=on
 before:

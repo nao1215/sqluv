@@ -269,7 +269,7 @@ func NewSQLServerDB(config SQLServerConfig) (SQLServerDB, func(), error) {
 	return SQLServerDB(db), func() { db.Close() }, nil
 }
 
-// HistoryDB is *sql.DB for sqly shell history.
+// HistoryDB is *sql.DB for sqluv shell history.
 type HistoryDB *sql.DB
 
 // NewHistoryDB create *sql.DB for history.
