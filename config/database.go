@@ -103,13 +103,14 @@ func NewMySQLConfig(
 // The return function is the function to close the DB.
 func NewMySQLDB(config MySQLConfig) (MySQLDB, func(), error) {
 	c := mysql.Config{
-		DBName:    config.database,
-		User:      config.user,
-		Passwd:    config.password,
-		Addr:      fmt.Sprintf("%s:%d", config.host, config.port),
-		Net:       "tcp",
-		ParseTime: true,
-		Collation: "utf8mb4_unicode_ci",
+		DBName:               config.database,
+		User:                 config.user,
+		Passwd:               config.password,
+		Addr:                 fmt.Sprintf("%s:%d", config.host, config.port),
+		Net:                  "tcp",
+		ParseTime:            true,
+		Collation:            "utf8mb4_unicode_ci",
+		AllowNativePasswords: true,
 	}
 
 	db, err := sql.Open("mysql", c.FormatDSN())
