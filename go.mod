@@ -1,7 +1,6 @@
 module github.com/nao1215/sqluv
 
 go 1.24.0
-
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/atotto/clipboard v0.1.4
@@ -21,7 +20,7 @@ require (
 	github.com/ulikunitz/xz v0.5.12
 	go.uber.org/mock v0.5.0
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.36.2
+	modernc.org/sqlite v1.36.3
 )
 
 require (
