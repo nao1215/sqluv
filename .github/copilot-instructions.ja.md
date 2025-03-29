@@ -19,7 +19,6 @@
 - testdata：テストデータを管理する
 - tui：TUIを管理する
 - usecase：tuiから呼び出されるユースケースインターフェースを管理する
-```
 
 # Text User Interfaceの概要
 
