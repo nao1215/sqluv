@@ -67,11 +67,11 @@ func (f *footer) update() {
 // setDefaulShortcut changes the shortcuts to the setDefaulShortcut screen.
 func (f *footer) setDefaulShortcut() {
 	f.clearShortcuts()
-	f.addShortcut("Ctrl-D", "Quit")
-	f.addShortcut("Esc", "Quit")
-	f.addShortcut("TAB", "Change focus")
-	f.addShortcut("Ctrl-T", "Theme selector")
-	f.addShortcut("Ctrl-S", "Save")
+	f.addShortcut("Ctrl-d", "Quit")
+	f.addShortcut("TAB,F1-F3", "Change focus")
+	f.addShortcut("Ctrl-t", "Theme")
+	f.addShortcut("Ctrl-h", "History")
+	f.addShortcut("Ctrl-e", "Exec Query")
 	f.update()
 }
 
