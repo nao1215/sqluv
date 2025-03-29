@@ -310,7 +310,7 @@ func (t *TUI) removeConnectionFromConfig(connectionName string) {
 func (t *TUI) importFiles(ctx context.Context) error {
 	tables := []*model.Table{}
 	defer func() {
-		t.home.sidebar.updateTables(tables, "local")
+		t.home.sidebar.update(tables, "local")
 	}()
 
 	for _, file := range t.files {
@@ -344,6 +344,27 @@ func (t *TUI) showError(err error) {
 }
 
 func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
+	defer func() {
+		if t.home.sidebar.HasFocus() && !t.home.footer.isActiveSearch() {
+			t.home.footer.setSidebarShortcut()
+			return
+		}
+		if !t.home.footer.isActiveSearch() {
+			t.home.footer.setDefaulShortcut()
+			return
+		}
+	}()
+
+	// If sidebar has focus and "/" is pressed, activate footer search for sidebar fuzzy search.
+	if t.home.sidebar.HasFocus() && event.Rune() == '/' {
+		t.home.footer.ActivateSearch()
+		t.home.footer.SetChangedFunc(func(text string) {
+			t.home.sidebar.filterTables(text)
+		})
+		t.app.SetFocus(t.home.footer)
+		return nil
+	}
+
 	switch {
 	case event.Key() == tcell.KeyCtrlD:
 		t.app.Stop()
@@ -430,6 +451,16 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 		return nil
 	case event.Key() == tcell.KeyF3:
 		t.app.SetFocus(t.home.resultTable)
+		return nil
+
+	case event.Key() == tcell.KeyEscape:
+		if t.home.footer.isActiveSearch() {
+			t.home.footer.SetLabel("")
+			t.home.sidebar.update(t.home.sidebar.allTables, t.home.sidebar.dbName)
+			t.home.footer.DeactivateSearch()
+			t.home.footer.update()
+			t.app.SetFocus(t.home.sidebar)
+		}
 		return nil
 	}
 	return event
@@ -565,7 +596,7 @@ func (t *TUI) loadDatabaseTables(ctx context.Context, dbName string) {
 		t.showError(fmt.Errorf("failed to load tables: %w", err))
 		return
 	}
-	t.home.sidebar.updateTables(tables, dbName)
+	t.home.sidebar.update(tables, dbName)
 }
 
 // showHistoryList displays a list of SQL query history and allows selection

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"github.com/gdamore/tcell/v2"
+	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/nao1215/sqluv/domain/model"
 	"github.com/rivo/tview"
 )
@@ -11,7 +12,9 @@ import (
 // The trees show tables associated with the database or files read from the local system.
 type sidebar struct {
 	*tview.TreeView
-	theme *Theme
+	theme     *Theme
+	allTables []*model.Table
+	dbName    string
 }
 
 // newSidebar creates a new sidebar.
@@ -44,6 +47,12 @@ func newSidebar(theme *Theme) *sidebar {
 }
 
 // updateTables updates the sidebar with tables and, on table click, shows the column names.
+func (s *sidebar) update(tables []*model.Table, dbName string) {
+	s.allTables = tables
+	s.dbName = dbName
+	s.updateTables(tables, dbName)
+}
+
 func (s *sidebar) updateTables(tables []*model.Table, dbName string) {
 	root := s.GetRoot()
 	if root == nil {
@@ -144,4 +153,16 @@ func applyThemeToTreeNodes(node *tview.TreeNode, colors ThemeColors) {
 	for _, child := range node.GetChildren() {
 		applyThemeToTreeNodes(child, colors)
 	}
+}
+
+// filterTables filters the sidebar table nodes by query using fuzzy matching.
+func (s *sidebar) filterTables(query string) {
+	// Use fuzzy matching to select tables.
+	matches := []*model.Table{}
+	for _, table := range s.allTables {
+		if fuzzy.Match(query, table.Name()) {
+			matches = append(matches, table)
+		}
+	}
+	s.updateTables(matches, s.dbName)
 }
