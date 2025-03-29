@@ -408,6 +408,17 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 			t.executeQuery(context.Background())
 			return nil
 		}
+		if t.home.sidebar.HasFocus() {
+			node := t.home.sidebar.GetCurrentNode()
+			if node != nil {
+				if table, ok := node.GetReference().(*model.Table); ok {
+					query := fmt.Sprintf("SELECT * FROM %s LIMIT 100", table.Name())
+					t.home.queryTextArea.SetText(query, true)
+					t.executeQuery(context.Background())
+					return nil
+				}
+			}
+		}
 	case event.Key() == tcell.KeyCtrlH:
 		t.showHistoryList()
 		return nil
