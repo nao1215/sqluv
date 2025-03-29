@@ -162,6 +162,15 @@ You can save the result to a file by pressing the `Ctrl + s` key. The sqluv will
 ### Dracula
 ![color_dracula](./doc/image/color_dracula.png)
 
+### Cyber Neon
+![color_cyber_neon](./doc/image/color_cyber_neon.png)
+
+### Earthy Tones
+![color_earthy_tones](./doc/image/color_earthy_tones.png)
+
+### Royal Inferno
+![color_royal_inferno](./doc/image/color_royal_inferno.png)
+
 ## Altenative Tools
 
 |Name | Description |
