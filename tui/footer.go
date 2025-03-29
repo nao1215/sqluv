@@ -3,32 +3,42 @@ package tui
 import (
 	"maps"
 	"slices"
+	"strings"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 // footer represents the footer component showing keyboard shortcuts
 type footer struct {
-	*tview.TextView
-	shortcuts map[string]string // key=shortcut, value=description
-	theme     *Theme
+	*tview.InputField
+	shortcuts    map[string]string // key=shortcut, value=description
+	theme        *Theme
+	searchActive bool
 }
 
 // newFooter creates a new footer with keyboard shortcuts
 func newFooter(theme *Theme) *footer {
-	textView := tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignLeft)
-
-	// Apply theme colors instead of hardcoded ones
-	colors := theme.GetColors()
-	textView.SetTextColor(colors.Foreground)
-	textView.SetBackgroundColor(colors.Background)
+	inputField := tview.NewInputField().
+		SetLabel("").
+		SetText("").
+		SetFieldWidth(0).
+		SetLabelWidth(0)
+	inputField.SetFieldStyle(tcell.StyleDefault.
+		Background(theme.GetColors().Background).
+		Foreground(theme.GetColors().Foreground))
+	inputField.SetLabelStyle(tcell.StyleDefault.
+		Background(theme.GetColors().Background).
+		Foreground(theme.GetColors().Header))
+	inputField.SetFieldBackgroundColor(theme.GetColors().Background)
+	inputField.SetBackgroundColor(theme.GetColors().Background)
+	inputField.SetBorder(false)
+	inputField.SetDisabled(true)
 
 	footer := &footer{
-		TextView:  textView,
-		shortcuts: make(map[string]string),
-		theme:     theme, // Store theme reference
+		InputField: inputField,
+		shortcuts:  make(map[string]string),
+		theme:      theme,
 	}
 	return footer
 }
@@ -45,23 +55,40 @@ func (f *footer) clearShortcuts() {
 	f.update()
 }
 
+// ActivateSearch enables the search field in the footer.
+func (f *footer) ActivateSearch() {
+	f.searchActive = true
+	f.SetDisabled(false)
+	f.SetLabel("Search: ")
+	f.SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyESC {
+			f.update()
+			f.SetDisabled(true)
+			f.searchActive = false
+		}
+	})
+}
+
+// DeactivateSearch disables the search field.
+func (f *footer) DeactivateSearch() {
+	f.searchActive = false
+	f.SetText("")
+	f.SetLabel("")
+	f.SetDisabled(true)
+}
+
 // update updates the footer text with the current shortcuts
 func (f *footer) update() {
-	f.Clear()
-
-	colors := f.theme.GetColors()
-
-	// Build shortcuts text with formatting
 	text := ""
 	for _, key := range slices.Sorted(maps.Keys(f.shortcuts)) {
 		if text != "" {
 			text += " | "
 		}
 		// Use the header color from theme for shortcuts
-		text += "[" + colors.Header.String() + "]" + key +
-			"[" + colors.Foreground.String() + "]: " + f.shortcuts[key]
+		text += key + ": " + f.shortcuts[key]
 	}
-	f.SetText(text)
+	text += strings.Repeat(" ", 100) // workaround for the footer background color
+	f.SetLabel(text)
 }
 
 // setDefaulShortcut changes the shortcuts to the setDefaulShortcut screen.
@@ -75,16 +102,35 @@ func (f *footer) setDefaulShortcut() {
 	f.update()
 }
 
+// setSidebarShortcut changes the shortcuts to the sidebar screen.
+func (f *footer) setSidebarShortcut() {
+	f.clearShortcuts()
+	f.addShortcut("/", "Search")
+	f.addShortcut("ESC", "Clear search")
+	f.update()
+}
+
 func (f *footer) applyTheme(theme *Theme) {
 	f.theme = theme
 	colors := theme.GetColors()
-	f.SetBackgroundColor(colors.Background)
+	f.SetFieldStyle(tcell.StyleDefault.
+		Background(colors.Background).
+		Foreground(colors.Foreground))
+	f.SetLabelStyle(tcell.StyleDefault.
+		Background(theme.GetColors().Background).
+		Foreground(theme.GetColors().Foreground))
+	f.SetPlaceholderStyle(tcell.StyleDefault.
+		Background(theme.GetColors().Background).
+		Foreground(theme.GetColors().Foreground))
 
 	f.update()
-
 	if f.HasFocus() {
 		f.SetBorderColor(colors.BorderFocus)
 	} else {
 		f.SetBorderColor(colors.Border)
 	}
+}
+
+func (f *footer) isActiveSearch() bool {
+	return f.searchActive
 }

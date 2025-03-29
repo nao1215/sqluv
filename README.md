@@ -67,6 +67,10 @@ If the connection is successful, database connection information will be saved i
 
 To execute a SQL query, enter the SQL query in the query text area and press the execute button or `Ctrl + e`. When you select the table name on the sidebar and press the `Ctrl + e`, the sqluv executes the `SELECT * FROM ${TABLE_NAME} LIMIT 100` query.
 
+To search for a table name, press the `/` key at the sidebar. The sqluv will display the search field at the footer. If you press the `ESC` key, the search field will be cleared.
+
+![sql_query](doc/image/search_tables.png)
+
 ## SQL query history
 
 If you execute a SQL query, the history will be saved in the `~/.config/sqluv/history.db`. So, you can look up the history by pressing the history button.
@@ -115,6 +119,8 @@ You can save the result to a file by pressing the `Ctrl + s` key. The sqluv will
 | Ctrl + x | Cut the selected text |
 | Ctrl + s | Save the result to a file |
 | Ctrl + t | Change the theme |
+| /        | Search the table name (when the focus is on the sidebar)|
+| ESC      | Clear the search field |
 | F1       | Focus on the sidebar |
 | F2       | Focus on the query text area |
 | F3       | Focus on the query result table |
