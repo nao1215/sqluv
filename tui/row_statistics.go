@@ -16,18 +16,15 @@ func newRowStatistics(theme *Theme) *rowStatistics {
 	textView := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
 		SetDynamicColors(true)
-
 	textView.SetBorder(false)
-
 	// Set initial text
 	textView.SetText("No rows to display")
 
-	// Set fixed height for this component
-	textView.SetText("No rows to display")
-
-	return &rowStatistics{
+	r := &rowStatistics{
 		TextView: textView,
 	}
+	r.applyTheme(theme)
+	return r
 }
 
 // clear resets the statistics display
