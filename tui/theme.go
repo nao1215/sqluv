@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"sort"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/nao1215/sqluv/config"
 	"github.com/rivo/tview"
@@ -58,6 +60,7 @@ type ThemeColors struct {
 // with buttons arranged in rows of 4 in the center of the screen
 func (t *Theme) ShowColorSchemeSelector(onClose func()) {
 	schemes := t.color.GetSchemeNames()
+	sort.Strings(schemes)
 
 	// Create a flex container for the buttons with padding
 	content := tview.NewFlex().

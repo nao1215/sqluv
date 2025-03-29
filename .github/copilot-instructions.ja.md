@@ -39,6 +39,12 @@
 
 上記は、RDBMS接続後、もしくはファイル読み込み後に表示されるTUIの構成である。RDBMS接続前は、モーダル（`tui.connectionModal`構造体）を表示する。
 
+# SQLクエリ履歴の仕様
+
+`history.db` ファイルは、`sqluv` の設定ファイルを管理するディレクトリ（例: `~/.config/sqluv`）に存在する。`sqluv` がSQLクエリを正常に実行するたびに、そのクエリ履歴をSQLite3を使用して `history.db` に保存する。`sqluv` の設定ファイルに関連するコードは `config/config_file.go` にある。
+
+`sqluv` は、ホーム画面で [History] ボタンを押下するか、`Ctrl-h` を入力すると、SQLクエリ履歴リスト画面を表示する。また、`sqluv` はクエリ履歴のファジー検索をサポートしており、`github.com/lithammer/fuzzysearch/fuzzy` を使用して実装されている。ファジー検索の実装は `tui/tui.go` にある。
+
 # ホーム画面におけるキーバインド
 
 |キー	| 説明 |
