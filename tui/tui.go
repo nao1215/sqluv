@@ -345,7 +345,7 @@ func (t *TUI) showError(err error) {
 
 func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 	switch {
-	case event.Key() == tcell.KeyEsc, event.Key() == tcell.KeyCtrlD:
+	case event.Key() == tcell.KeyCtrlD:
 		t.app.Stop()
 	case event.Key() == tcell.KeyTAB:
 		// Cycle focus: queryTextArea -> executeButton -> historyButton -> queryResultTable -> sidebar -> queryTextArea
@@ -402,6 +402,23 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 		return nil
 	case event.Key() == tcell.KeyCtrlS:
 		t.showSaveDialog()
+		return nil
+	case event.Key() == tcell.KeyCtrlE:
+		if t.home.queryTextArea.HasFocus() {
+			t.executeQuery(context.Background())
+			return nil
+		}
+	case event.Key() == tcell.KeyCtrlH:
+		t.showHistoryList()
+		return nil
+	case event.Key() == tcell.KeyF1:
+		t.app.SetFocus(t.home.sidebar)
+		return nil
+	case event.Key() == tcell.KeyF2:
+		t.app.SetFocus(t.home.queryTextArea)
+		return nil
+	case event.Key() == tcell.KeyF3:
+		t.app.SetFocus(t.home.resultTable)
 		return nil
 	}
 	return event
@@ -628,6 +645,12 @@ func (t *TUI) showHistoryList() {
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyTAB {
 			t.app.SetFocus(searchInput)
+			return nil
+		}
+		if event.Key() == tcell.KeyEscape {
+			t.app.SetRoot(t.home.flex, true)
+			t.app.SetFocus(t.home.queryTextArea)
+			t.refreshAllComponents()
 			return nil
 		}
 		return event

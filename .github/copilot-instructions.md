@@ -43,3 +43,21 @@ The TUI is implemented using the `github.com/rivo/tview` library and consists of
 - **Structure managing color themes** (`tui.Theme` struct)  
 
 The above components make up the TUI that appears **after connecting to an RDBMS or loading a file**. Before connecting to an RDBMS, a **modal window** (`tui.connectionModal` struct) is displayed.
+
+# **Key Bindings on the Home Screen**
+
+| Key | Description |
+| --- | --- |
+| Ctrl + d | Quit |
+| Ctrl + e | Execute the SQL query |
+| Ctrl + h | Display the SQL query history |
+| Ctrl + c | Copy the selected sql query |
+| Ctrl + v | Paste the copied text |
+| Ctrl + x | Cut the selected text |
+| Ctrl + s | Save the result to a file |
+| Ctrl + t | Change the theme |
+| F1       | Focus on the sidebar |
+| F2       | Focus on the query text area |
+| F3       | Focus on the query result table |
+| TAB | Move to the next field |
+| Shift + TAB | Move to the previous field |

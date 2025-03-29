@@ -103,13 +103,17 @@ You can save the result to a file by pressing the `Ctrl + s` key. The sqluv will
 
 | Key | Description |
 | --- | --- |
-| ESC | Quit |
 | Ctrl + d | Quit |
+| Ctrl + e | Execute the SQL query |
+| Ctrl + h | Display the SQL query history |
 | Ctrl + c | Copy the selected sql query |
 | Ctrl + v | Paste the copied text |
 | Ctrl + x | Cut the selected text |
 | Ctrl + s | Save the result to a file |
 | Ctrl + t | Change the theme |
+| F1       | Focus on the sidebar |
+| F2       | Focus on the query text area |
+| F3       | Focus on the query result table |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
 
