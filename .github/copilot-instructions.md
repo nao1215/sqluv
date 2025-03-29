@@ -4,8 +4,6 @@ The application developed in this project is called `sqluv`, a cross-platform ap
 
 In addition to RDBMS, it can also load CSV, TSV, and LTSV files from **local storage, HTTPS, or Amazon S3** into SQLite3 (in-memory) and execute SQL queries on them. It is not possible to execute RDBMS connections and file loading simultaneously. If no startup arguments are provided, the application will attempt to connect to an RDBMS. If startup arguments are present, it will attempt to load files instead.  
 
----
-
 # **Project Directory Structure**  
 
 - **config**: Manages environment variables, startup arguments, and configuration files (DB connection settings, color theme settings, SQL query history).  
@@ -24,8 +22,6 @@ In addition to RDBMS, it can also load CSV, TSV, and LTSV files from **local sto
 - **tui**: Manages the TUI.  
 - **usecase**: Manages the use case interfaces called from the TUI.  
 
----
-
 # **Overview of the Text User Interface (TUI)**  
 
 The TUI is implemented using the `github.com/rivo/tview` library and consists of the following components:  
@@ -43,6 +39,12 @@ The TUI is implemented using the `github.com/rivo/tview` library and consists of
 - **Structure managing color themes** (`tui.Theme` struct)  
 
 The above components make up the TUI that appears **after connecting to an RDBMS or loading a file**. Before connecting to an RDBMS, a **modal window** (`tui.connectionModal` struct) is displayed.
+
+# SQL Query History Specification
+
+The `history.db` file exists in the directory that manages the configuration files for `sqluv` (e.g., `~/.config/sqluv`). Every time `sqluv` successfully executes an SQL query, it saves the query history to `history.db` using SQLite3. The code related to `sqluv`'s configuration files is located in `config/config_file.go`.
+
+`sqluv` displays the SQL query history list screen when the [History] button on the home screen is pressed or when `Ctrl-h` is entered. It also supports fuzzy search for query history, which is implemented using `github.com/lithammer/fuzzysearch/fuzzy`. The implementation of fuzzy search can be found in `tui/tui.go`.
 
 # **Key Bindings on the Home Screen**
 
