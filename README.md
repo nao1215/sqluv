@@ -63,6 +63,10 @@ If the connection is successful, database connection information will be saved i
 
 ![home_screen](doc/image/dbms_home.png)
 
+### Execute SQL query
+
+To execute a SQL query, enter the SQL query in the query text area and press the execute button or `Ctrl + e`. When you select the table name on the sidebar and press the `Ctrl + e`, the sqluv executes the `SELECT * FROM ${TABLE_NAME} LIMIT 100` query.
+
 ## SQL query history
 
 If you execute a SQL query, the history will be saved in the `~/.config/sqluv/history.db`. So, you can look up the history by pressing the history button.
