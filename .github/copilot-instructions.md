@@ -42,7 +42,7 @@ The above components make up the TUI that appears **after connecting to an RDBMS
 
 # Architecture of sqluv
 
-The project adopts Clean Architecture. The TUI depends on the `usecase` package (interfaces). The interfaces in the `usecase` package are implemented in the `interactor` package. The `interactor` depends on the `domain/model` package and the `domain/repository` package. The `domain/repository` package is implemented in the `infrastructure/memory` package and the `infrastructure/persistence` package. The `infrastructure/memory` and `infrastructure/persistence` packages depend on the `domain/model` package.
+The project adopts Clean Architecture. The TUI depends on the `usecase` package (interfaces). The interfaces in the `usecase` package are implemented in the `interactor` package. The `interactor` depends on the `domain/model` package and the `domain/repository` package (interfaces). The `domain/repository` package is implemented in the `infrastructure/memory` package and the `infrastructure/persistence` package. The `infrastructure/memory` and `infrastructure/persistence` packages depend on the `domain/model` package.
 
 The `domain/model` package manages domain objects. Most structs are implemented as Value Objects, and initialization functions are provided.
 
@@ -93,8 +93,19 @@ The `infrastructure` package implements code that varies depending on RDBMS type
 | Ctrl + x | Cut the selected text |
 | Ctrl + s | Save the result to a file |
 | Ctrl + t | Change the theme |
+| /        | Search the table name (when the focus is on the sidebar)|
+| ESC      | Clear the search field (when the focus is on the sidebar)|
+| Space    | Show/Hide Columns (when the focus is on the sidebar)|
+| Enter    | Show the table DDL (when the focus is on the sidebar)|
 | F1       | Focus on the sidebar |
 | F2       | Focus on the query text area |
 | F3       | Focus on the query result table |
 | TAB | Move to the next field |
 | Shift + TAB | Move to the previous field |
+
+# **Supported RDBMSs**
+
+- MySQL
+- PostgreSQL
+- SQLite3
+- SQL Server

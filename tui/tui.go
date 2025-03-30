@@ -35,6 +35,7 @@ type (
 	dbmsUsecases struct {
 		queryExecutor usecase.QueryExecutor
 		tablesGetter  usecase.TablesGetter
+		ddlGetter     usecase.TableDDLGetter
 		fileWriter    usecase.FileWriter
 
 		closeDB       func() // Added field for database cleanup function
@@ -161,10 +162,12 @@ func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
 	queryExecutor := persistence.NewQueryExecutor(db)
 	statementExecutor := persistence.NewStatementExecutor(db)
 	tablesGetter := persistence.NewTablesGetter(db, conn.Database, conn.Type)
+	tableDDLGetter := persistence.NewTableDDLGetter(db, conn.Database, conn.Type)
 
 	t.dbmsUsecases = &dbmsUsecases{
 		queryExecutor: interactor.NewQueryExecutor(queryExecutor, statementExecutor),
 		tablesGetter:  interactor.NewTablesGetter(tablesGetter),
+		ddlGetter:     interactor.NewTableDDLGetter(tableDDLGetter),
 	}
 
 	// Store the database connection for later use
@@ -462,6 +465,24 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 			t.app.SetFocus(t.home.sidebar)
 		}
 		return nil
+	case event.Key() == tcell.KeyEnter:
+		if t.home.sidebar.HasFocus() {
+			node := t.home.sidebar.GetCurrentNode()
+			if node != nil {
+				if table, ok := node.GetReference().(*model.Table); ok {
+					ddlTables, err := t.dbmsUsecases.ddlGetter.GetTableDDL(context.Background(), table.Name())
+					if err != nil {
+						t.showError(err)
+						return nil
+					}
+					if len(ddlTables) > 0 {
+						// Display the first returned DDL table.
+						t.home.resultTable.update(ddlTables[0], t.home.rowStatistics, 0)
+					}
+				}
+			}
+			return nil
+		}
 	}
 	return event
 }

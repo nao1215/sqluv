@@ -71,6 +71,10 @@ To search for a table name, press the `/` key at the sidebar. The sqluv will dis
 
 ![sql_query](doc/image/search_tables.png)
 
+To show/hide columns, press the `Space` key at the sidebar. If you press the `Space` key at the sidebar, the sqluv display the table ddl.
+
+![ddl](doc/image/ddl_info.png)
+
 ## SQL query history
 
 If you execute a SQL query, the history will be saved in the `~/.config/sqluv/history.db`. So, you can look up the history by pressing the history button.
@@ -120,7 +124,9 @@ You can save the result to a file by pressing the `Ctrl + s` key. The sqluv will
 | Ctrl + s | Save the result to a file |
 | Ctrl + t | Change the theme |
 | /        | Search the table name (when the focus is on the sidebar)|
-| ESC      | Clear the search field |
+| ESC      | Clear the search field (when the focus is on the sidebar)|
+| Space    | Show/Hide Columns (when the focus is on the sidebar)|
+| Enter    | Show the table DDL (when the focus is on the sidebar)|
 | F1       | Focus on the sidebar |
 | F2       | Focus on the query text area |
 | F3       | Focus on the query result table |
