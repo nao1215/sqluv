@@ -40,6 +40,12 @@ The TUI is implemented using the `github.com/rivo/tview` library and consists of
 
 The above components make up the TUI that appears **after connecting to an RDBMS or loading a file**. Before connecting to an RDBMS, a **modal window** (`tui.connectionModal` struct) is displayed.
 
+# Architecture of sqluv
+
+The project adopts Clean Architecture. The TUI depends on the `usecase` package (interfaces). The interfaces in the `usecase` package are implemented in the `interactor` package. The `interactor` depends on the `domain/model` package and the `domain/repository` package. The `domain/repository` package is implemented in the `infrastructure/memory` package and the `infrastructure/persistence` package. The `infrastructure/memory` and `infrastructure/persistence` packages depend on the `domain/model` package.
+
+The `domain/model` package manages domain objects. Most structs are implemented as Value Objects, and initialization functions are provided.
+
 # SQL Query History Specification
 
 The `history.db` file exists in the directory that manages the configuration files for `sqluv` (e.g., `~/.config/sqluv`). Every time `sqluv` successfully executes an SQL query, it saves the query history to `history.db` using SQLite3. The code related to `sqluv`'s configuration files is located in `config/config_file.go`.
