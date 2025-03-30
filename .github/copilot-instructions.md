@@ -46,6 +46,35 @@ The `history.db` file exists in the directory that manages the configuration fil
 
 `sqluv` displays the SQL query history list screen when the [History] button on the home screen is pressed or when `Ctrl-h` is entered. It also supports fuzzy search for query history, which is implemented using `github.com/lithammer/fuzzysearch/fuzzy`. The implementation of fuzzy search can be found in `tui/tui.go`.
 
+### Interface Specification  
+
+Following Go conventions, interface names are formed by combining a verb with "er." Each interface contains only a single method. The interface name follows the pattern *Noun + Verb + "er"*, while the method name follows the pattern *Verb + Noun*. Once an interface name is determined, its method name is automatically derived. For example, the `FileGetter` interface contains the `GetFile()` method.  
+
+### Dependency Injection Specification  
+
+Dependency Injection (DI) is handled using `github.com/google/wire`. The `gen` target in the Makefile is used to automatically generate initialization code. Each package implementing an interface contains a `wire.go` file, where the initialization logic (i.e., the constructor for the struct implementing the interface) is passed as an argument to `wire.NewSet()`. Below is a code example:  
+
+```go
+package config
+
+import "github.com/google/wire"
+
+// Set is config providers.
+var Set = wire.NewSet(
+	NewMemoryDB,
+	NewDBConfig,
+	NewColorConfig,
+	NewHistoryDB,
+	NewAWSConfig,
+)
+```  
+
+Each package's `wire.ProviderSet` is aggregated in the `di` package within `NewSqluv()`.  
+
+### Role of the `infrastructure` Package  
+
+The `infrastructure` package implements code that varies depending on RDBMS types or file extensions. For example, `infrastructure/persistence/dbms.go` defines the `func (g *tablesGetter) GetTables(ctx context.Context) ([]*model.Table, error)`, which retrieves table information from the database. The executed SQL varies based on the connected RDBMS.
+
 # **Key Bindings on the Home Screen**
 
 | Key | Description |
