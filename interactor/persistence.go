@@ -65,22 +65,22 @@ func (m *tablesGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 }
 
 // _ interface implementation check
-var _ usecase.TableDDLGetter = (*tableDDLGetter)(nil)
+var _ usecase.TableDDLInRemoteGetter = (*tableDDLInRemoteGetter)(nil)
 
-type tableDDLGetter struct {
-	repository.TableDDLGetter
+type tableDDLInRemoteGetter struct {
+	repository.TableDDLInRemoteGetter
 }
 
-// NewTableDDLGetter creates a new TableDDLGetter.
-func NewTableDDLGetter(
-	tdg repository.TableDDLGetter,
-) usecase.TableDDLGetter {
-	return &tableDDLGetter{
-		TableDDLGetter: tdg,
+// NewTableDDLInRemoteGetter creates a new TableDDLGetter.
+func NewTableDDLInRemoteGetter(
+	tdg repository.TableDDLInRemoteGetter,
+) usecase.TableDDLInRemoteGetter {
+	return &tableDDLInRemoteGetter{
+		TableDDLInRemoteGetter: tdg,
 	}
 }
 
 // GetTableDDL gets DDL information of a table in MySQL database.
-func (m *tableDDLGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
-	return m.TableDDLGetter.GetTableDDL(ctx, tableName)
+func (m *tableDDLInRemoteGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
+	return m.TableDDLInRemoteGetter.GetTableDDL(ctx, tableName)
 }

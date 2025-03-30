@@ -144,32 +144,32 @@ func (c *MockTablesGetterGetTablesCall) DoAndReturn(f func(context.Context) ([]*
 	return c
 }
 
-// MockTableDDLGetter is a mock of TableDDLGetter interface.
-type MockTableDDLGetter struct {
+// MockTableDDLInRemoteGetter is a mock of TableDDLInRemoteGetter interface.
+type MockTableDDLInRemoteGetter struct {
 	ctrl     *gomock.Controller
-	recorder *MockTableDDLGetterMockRecorder
+	recorder *MockTableDDLInRemoteGetterMockRecorder
 	isgomock struct{}
 }
 
-// MockTableDDLGetterMockRecorder is the mock recorder for MockTableDDLGetter.
-type MockTableDDLGetterMockRecorder struct {
-	mock *MockTableDDLGetter
+// MockTableDDLInRemoteGetterMockRecorder is the mock recorder for MockTableDDLInRemoteGetter.
+type MockTableDDLInRemoteGetterMockRecorder struct {
+	mock *MockTableDDLInRemoteGetter
 }
 
-// NewMockTableDDLGetter creates a new mock instance.
-func NewMockTableDDLGetter(ctrl *gomock.Controller) *MockTableDDLGetter {
-	mock := &MockTableDDLGetter{ctrl: ctrl}
-	mock.recorder = &MockTableDDLGetterMockRecorder{mock}
+// NewMockTableDDLInRemoteGetter creates a new mock instance.
+func NewMockTableDDLInRemoteGetter(ctrl *gomock.Controller) *MockTableDDLInRemoteGetter {
+	mock := &MockTableDDLInRemoteGetter{ctrl: ctrl}
+	mock.recorder = &MockTableDDLInRemoteGetterMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTableDDLGetter) EXPECT() *MockTableDDLGetterMockRecorder {
+func (m *MockTableDDLInRemoteGetter) EXPECT() *MockTableDDLInRemoteGetterMockRecorder {
 	return m.recorder
 }
 
 // GetTableDDL mocks base method.
-func (m *MockTableDDLGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
+func (m *MockTableDDLInRemoteGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTableDDL", ctx, tableName)
 	ret0, _ := ret[0].([]*model.Table)
@@ -178,31 +178,31 @@ func (m *MockTableDDLGetter) GetTableDDL(ctx context.Context, tableName string) 
 }
 
 // GetTableDDL indicates an expected call of GetTableDDL.
-func (mr *MockTableDDLGetterMockRecorder) GetTableDDL(ctx, tableName any) *MockTableDDLGetterGetTableDDLCall {
+func (mr *MockTableDDLInRemoteGetterMockRecorder) GetTableDDL(ctx, tableName any) *MockTableDDLInRemoteGetterGetTableDDLCall {
 	mr.mock.ctrl.T.Helper()
-	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTableDDL", reflect.TypeOf((*MockTableDDLGetter)(nil).GetTableDDL), ctx, tableName)
-	return &MockTableDDLGetterGetTableDDLCall{Call: call}
+	call := mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTableDDL", reflect.TypeOf((*MockTableDDLInRemoteGetter)(nil).GetTableDDL), ctx, tableName)
+	return &MockTableDDLInRemoteGetterGetTableDDLCall{Call: call}
 }
 
-// MockTableDDLGetterGetTableDDLCall wrap *gomock.Call
-type MockTableDDLGetterGetTableDDLCall struct {
+// MockTableDDLInRemoteGetterGetTableDDLCall wrap *gomock.Call
+type MockTableDDLInRemoteGetterGetTableDDLCall struct {
 	*gomock.Call
 }
 
 // Return rewrite *gomock.Call.Return
-func (c *MockTableDDLGetterGetTableDDLCall) Return(arg0 []*model.Table, arg1 error) *MockTableDDLGetterGetTableDDLCall {
+func (c *MockTableDDLInRemoteGetterGetTableDDLCall) Return(arg0 []*model.Table, arg1 error) *MockTableDDLInRemoteGetterGetTableDDLCall {
 	c.Call = c.Call.Return(arg0, arg1)
 	return c
 }
 
 // Do rewrite *gomock.Call.Do
-func (c *MockTableDDLGetterGetTableDDLCall) Do(f func(context.Context, string) ([]*model.Table, error)) *MockTableDDLGetterGetTableDDLCall {
+func (c *MockTableDDLInRemoteGetterGetTableDDLCall) Do(f func(context.Context, string) ([]*model.Table, error)) *MockTableDDLInRemoteGetterGetTableDDLCall {
 	c.Call = c.Call.Do(f)
 	return c
 }
 
 // DoAndReturn rewrite *gomock.Call.DoAndReturn
-func (c *MockTableDDLGetterGetTableDDLCall) DoAndReturn(f func(context.Context, string) ([]*model.Table, error)) *MockTableDDLGetterGetTableDDLCall {
+func (c *MockTableDDLInRemoteGetterGetTableDDLCall) DoAndReturn(f func(context.Context, string) ([]*model.Table, error)) *MockTableDDLInRemoteGetterGetTableDDLCall {
 	c.Call = c.Call.DoAndReturn(f)
 	return c
 }

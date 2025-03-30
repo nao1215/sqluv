@@ -105,3 +105,24 @@ func (r *sqlExecutor) ExecuteSQL(ctx context.Context, sql *model.SQL) (*usecase.
 	}
 	return usecase.NewExecuteSQLOutput(nil, rowsAffected), nil
 }
+
+// _ interface implementation check
+var _ usecase.TableDDLGetter = (*tableDDLGetter)(nil)
+
+type tableDDLGetter struct {
+	repository.TableDDLGetter
+}
+
+// NewTableDDLGetter create new TableDDLGetter.
+func NewTableDDLGetter(
+	g repository.TableDDLGetter,
+) usecase.TableDDLGetter {
+	return &tableDDLGetter{
+		TableDDLGetter: g,
+	}
+}
+
+// GetTableDDL gets a table's DDL information.
+func (r *tableDDLGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
+	return r.TableDDLGetter.GetTableDDL(ctx, tableName)
+}

@@ -10,4 +10,5 @@ var Set = wire.NewSet(
 	NewRecordInserter,
 	NewQueryExecutor,
 	NewStatementExecutor,
+	NewTableDDLGetter,
 )

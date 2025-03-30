@@ -40,6 +40,8 @@ func NewSqluv(ctx context.Context, arg *config.Argument) (*tui.TUI, func(), erro
 	usecaseTableCreator := interactor.NewTableCreator(tableCreator)
 	tablesGetter := memory.NewTableGetter(memoryDB)
 	usecaseTablesGetter := interactor.NewLocalTablesGetter(tablesGetter)
+	tableDDLGetter := memory.NewTableDDLGetter(memoryDB)
+	usecaseTableDDLGetter := interactor.NewTableDDLGetter(tableDDLGetter)
 	queryExecutor := memory.NewQueryExecutor(memoryDB)
 	statementExecutor := memory.NewStatementExecutor(memoryDB)
 	sqlExecutor := interactor.NewSQLExecutor(queryExecutor, statementExecutor)
@@ -67,7 +69,7 @@ func NewSqluv(ctx context.Context, arg *config.Argument) (*tui.TUI, func(), erro
 		cleanup()
 		return nil, nil, err
 	}
-	tuiTUI := tui.NewTUI(arg, fileReader, fileWriter, usecaseTableCreator, usecaseTablesGetter, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
+	tuiTUI := tui.NewTUI(arg, fileReader, fileWriter, usecaseTableCreator, usecaseTablesGetter, usecaseTableDDLGetter, sqlExecutor, usecaseRecordsInserter, usecaseHistoryTableCreator, usecaseHistoryCreator, usecaseHistoryLister, dbConfig, colorConfig)
 	return tuiTUI, func() {
 		cleanup2()
 		cleanup()

@@ -205,3 +205,70 @@ func (e *statementExecutor) ExecuteStatement(ctx context.Context, sql *model.SQL
 	}
 	return result.RowsAffected()
 }
+
+// _ interface implementation check
+var _ repository.TableDDLGetter = (*ddlGetter)(nil)
+
+type ddlGetter struct {
+	db *sql.DB
+}
+
+// NewTableDDLGetter return ddlGetter
+func NewTableDDLGetter(db config.MemoryDB) repository.TableDDLGetter {
+	return &ddlGetter{db: db}
+}
+
+// GetTableDDL get table DDL in memory
+func (d *ddlGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
+	query := "PRAGMA table_info(" + tableName + ")"
+	rows, err := tx.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Define header for DDL info using the model.Header (CSV/TSV table header)
+	header := model.NewHeader([]string{"Column Name", "Type", "Precision", "Nullable", "DefaultValue", "PrimaryKey"})
+	var records []model.Record
+
+	for rows.Next() {
+		var cid int
+		var colName, colType string
+		var notnull, pk int
+		var dflt sql.NullString
+		if err := rows.Scan(&cid, &colName, &colType, &notnull, &dflt, &pk); err != nil {
+			return nil, err
+		}
+		dfltValue := ""
+		if dflt.Valid {
+			dfltValue = dflt.String
+		}
+		nullable := "YES"
+		if notnull != 0 {
+			nullable = "NO"
+		}
+		key := ""
+		if pk > 0 {
+			key = "PRI"
+		}
+		records = append(records, model.NewRecord([]string{
+			colName, colType, "0", nullable, dfltValue, key,
+		}))
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	ddlTable := model.NewTable(tableName, header, records)
+	return []*model.Table{ddlTable}, nil
+}
