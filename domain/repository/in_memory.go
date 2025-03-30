@@ -33,4 +33,9 @@ type (
 	StatementExecutor interface {
 		ExecuteStatement(ctx context.Context, sql *model.SQL) (int64, error)
 	}
+
+	// TableDDLGetter gets a table's DDL information.
+	TableDDLGetter interface {
+		GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error)
+	}
 )

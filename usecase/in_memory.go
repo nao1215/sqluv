@@ -29,6 +29,11 @@ type (
 	SQLExecutor interface {
 		ExecuteSQL(ctx context.Context, sql *model.SQL) (*ExecuteSQLOutput, error)
 	}
+
+	// TableDDLGetter gets a table's DDL information.
+	TableDDLGetter interface {
+		GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error)
+	}
 )
 
 // NewExecuteSQLOutput creates a new ExecuteSQLOutput.

@@ -27,6 +27,7 @@ type (
 		fileWriter     usecase.FileWriter
 		tableCreator   usecase.TableCreator
 		tablesGetter   usecase.TablesGetter
+		ddlGetter      usecase.TableDDLGetter
 		sqlExecutor    usecase.SQLExecutor
 		recordInserter usecase.RecordsInserter
 	}
@@ -35,7 +36,7 @@ type (
 	dbmsUsecases struct {
 		queryExecutor usecase.QueryExecutor
 		tablesGetter  usecase.TablesGetter
-		ddlGetter     usecase.TableDDLGetter
+		ddlGetter     usecase.TableDDLInRemoteGetter
 		fileWriter    usecase.FileWriter
 
 		closeDB       func() // Added field for database cleanup function
@@ -73,6 +74,7 @@ func NewTUI(
 	fileWriter usecase.FileWriter,
 	tableCreator usecase.TableCreator,
 	tablesGetter usecase.TablesGetter,
+	ddlGetter usecase.TableDDLGetter,
 	sqlExecuter usecase.SQLExecutor,
 	recordInserter usecase.RecordsInserter,
 	historyTableCreator usecase.HistoryTableCreator,
@@ -93,6 +95,7 @@ func NewTUI(
 			fileWriter:     fileWriter,
 			tableCreator:   tableCreator,
 			tablesGetter:   tablesGetter,
+			ddlGetter:      ddlGetter,
 			sqlExecutor:    sqlExecuter,
 			recordInserter: recordInserter,
 		},
@@ -167,7 +170,7 @@ func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
 	t.dbmsUsecases = &dbmsUsecases{
 		queryExecutor: interactor.NewQueryExecutor(queryExecutor, statementExecutor),
 		tablesGetter:  interactor.NewTablesGetter(tablesGetter),
-		ddlGetter:     interactor.NewTableDDLGetter(tableDDLGetter),
+		ddlGetter:     interactor.NewTableDDLInRemoteGetter(tableDDLGetter),
 	}
 
 	// Store the database connection for later use
@@ -466,23 +469,36 @@ func (t *TUI) keyBindings(event *tcell.EventKey) *tcell.EventKey {
 		}
 		return nil
 	case event.Key() == tcell.KeyEnter:
-		if t.home.sidebar.HasFocus() {
-			node := t.home.sidebar.GetCurrentNode()
-			if node != nil {
-				if table, ok := node.GetReference().(*model.Table); ok {
-					ddlTables, err := t.dbmsUsecases.ddlGetter.GetTableDDL(context.Background(), table.Name())
-					if err != nil {
-						t.showError(err)
-						return nil
-					}
-					if len(ddlTables) > 0 {
-						// Display the first returned DDL table.
-						t.home.resultTable.update(ddlTables[0], t.home.rowStatistics, 0)
-					}
+		if !t.home.sidebar.HasFocus() {
+			return event
+		}
+		node := t.home.sidebar.GetCurrentNode()
+		if node == nil {
+			return event
+		}
+		if table, ok := node.GetReference().(*model.Table); ok {
+			ddlTables := []*model.Table{}
+			if t.dbmsUsecases.isDBConnected {
+				var err error
+				ddlTables, err = t.dbmsUsecases.ddlGetter.GetTableDDL(context.Background(), table.Name())
+				if err != nil {
+					t.showError(err)
+					return nil
+				}
+			} else {
+				var err error
+				ddlTables, err = t.localUsecases.ddlGetter.GetTableDDL(context.Background(), table.Name())
+				if err != nil {
+					t.showError(err)
+					return nil
 				}
 			}
-			return nil
+			if len(ddlTables) > 0 {
+				// Display the first returned DDL table.
+				t.home.resultTable.update(ddlTables[0], t.home.rowStatistics, 0)
+			}
 		}
+		return nil
 	}
 	return event
 }

@@ -201,7 +201,7 @@ func NewTableDDLGetter(
 	db *sql.DB,
 	database string,
 	dbmsType config.DBMSType,
-) repository.TableDDLGetter {
+) repository.TableDDLInRemoteGetter {
 	return &ddlGetter{
 		db:       db,
 		database: database,
@@ -289,6 +289,9 @@ func (d *ddlGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model
 				colName, dataType, strconv.Itoa(precision), nullable, dfltValue, columnKey,
 			}))
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	ddlTable := model.NewTable(tableName, header, records)

@@ -14,5 +14,6 @@ var Set = wire.NewSet(
 	NewHistoryTableCreator,
 	NewHistoryCreator,
 	NewHistoryLister,
+	NewTableDDLInRemoteGetter,
 	NewTableDDLGetter,
 )
