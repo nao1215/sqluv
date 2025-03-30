@@ -23,4 +23,10 @@ type (
 	TablesInRemoteGetter interface {
 		GetTables(ctx context.Context) ([]*model.Table, error)
 	}
+
+	// TableDDLGetter is an interface for retrieving a table's DDL information,
+	// including columns, data types, precision, nullability, default values, primary key status, etc.
+	TableDDLGetter interface {
+		GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error)
+	}
 )

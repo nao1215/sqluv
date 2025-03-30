@@ -106,6 +106,8 @@ func (f *footer) setDefaulShortcut() {
 func (f *footer) setSidebarShortcut() {
 	f.clearShortcuts()
 	f.addShortcut("/", "Search")
+	f.addShortcut("Enter", "Show DDL")
+	f.addShortcut("Space", "Show/Hide Columns")
 	f.addShortcut("ESC", "Clear search")
 	f.update()
 }

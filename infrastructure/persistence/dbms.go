@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/nao1215/sqluv/config"
 	"github.com/nao1215/sqluv/domain/model"
@@ -187,4 +188,109 @@ func (e *statementExecutor) ExecuteStatement(ctx context.Context, sql *model.SQL
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+type ddlGetter struct {
+	db       *sql.DB
+	dbmsType config.DBMSType
+	database string
+}
+
+// NewTableDDLGetter returns a new TableDDLGetter.
+func NewTableDDLGetter(
+	db *sql.DB,
+	database string,
+	dbmsType config.DBMSType,
+) repository.TableDDLGetter {
+	return &ddlGetter{
+		db:       db,
+		database: database,
+		dbmsType: dbmsType,
+	}
+}
+
+// GetTableDDL retrieves the DDL info of the given table as a Table struct.
+func (d *ddlGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model.Table, error) {
+	var query string
+	var rows *sql.Rows
+	var err error
+
+	switch d.dbmsType {
+	case config.MySQL:
+		query = `
+            SELECT COLUMN_NAME, DATA_TYPE, IFNULL(CHARACTER_MAXIMUM_LENGTH, 0),
+                   IS_NULLABLE, IFNULL(COLUMN_DEFAULT, ''), COLUMN_KEY
+            FROM information_schema.columns
+            WHERE table_schema=? AND table_name=?`
+		rows, err = d.db.QueryContext(ctx, query, d.database, tableName)
+	case config.PostgreSQL:
+		query = `
+            SELECT column_name, data_type, COALESCE(character_maximum_length, 0),
+                   is_nullable, COALESCE(column_default, ''), ''
+            FROM information_schema.columns
+            WHERE table_schema='public' AND table_name=$1::text`
+		rows, err = d.db.QueryContext(ctx, query, tableName)
+	case config.SQLite3:
+		// PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
+		query = "PRAGMA table_info(" + tableName + ")"
+		rows, err = d.db.QueryContext(ctx, query)
+	case config.SQLServer:
+		query = `
+            SELECT COLUMN_NAME, DATA_TYPE, ISNULL(CHARACTER_MAXIMUM_LENGTH, 0),
+                   IS_NULLABLE, ISNULL(COLUMN_DEFAULT, ''), '' as column_key
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_CATALOG=? AND TABLE_NAME=?`
+		rows, err = d.db.QueryContext(ctx, query, d.database, tableName)
+	default:
+		return nil, fmt.Errorf("unsupported DBMS type: %v", d.dbmsType)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Define header for DDL info using the model.Header (CSV/TSV table header)
+	header := model.NewHeader([]string{"Column Name", "Type", "Precision", "Nullable", "DefaultValue", "PrimaryKey"})
+	var records []model.Record
+
+	for rows.Next() {
+		switch d.dbmsType {
+		case config.SQLite3:
+			var cid int
+			var colName, colType string
+			var notnull, pk int
+			var dflt sql.NullString
+			if err := rows.Scan(&cid, &colName, &colType, &notnull, &dflt, &pk); err != nil {
+				return nil, err
+			}
+			dfltValue := ""
+			if dflt.Valid {
+				dfltValue = dflt.String
+			}
+			nullable := "YES"
+			if notnull != 0 {
+				nullable = "NO"
+			}
+			key := ""
+			if pk > 0 {
+				key = "PRI"
+			}
+			records = append(records, model.NewRecord([]string{
+				colName, colType, "0", nullable, dfltValue, key,
+			}))
+		default:
+			var colName, dataType, nullable, dfltValue, columnKey string
+			var precision int
+			if err := rows.Scan(&colName, &dataType, &precision, &nullable, &dfltValue, &columnKey); err != nil {
+				return nil, err
+			}
+			records = append(records, model.NewRecord([]string{
+				colName, dataType, strconv.Itoa(precision), nullable, dfltValue, columnKey,
+			}))
+		}
+	}
+
+	ddlTable := model.NewTable(tableName, header, records)
+	return []*model.Table{ddlTable}, nil
 }

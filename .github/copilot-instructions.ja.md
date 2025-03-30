@@ -20,6 +20,12 @@
 - tui：TUIを管理する
 - usecase：tuiから呼び出されるユースケースインターフェースを管理する
 
+# sqluvのアーキテクチャ
+
+クリーンアーキテクチャを採用している。TUIは、usecaseパッケージ（インターフェース）に依存する。usecaseのインターフェースは、interactorパッケージで実装されている。interactorは、domain/modelパッケージおよびdomain/repositoryパッケージ（インターフェース）に依存する。domain/repositoryパッケージは、infrastructure/memoryパッケージおよびinfrastructure/persistenceパッケージで実装されている。infrastructure/memoryパッケージおよびinfrastructure/persistenceパッケージは、domain/modelパッケージに依存する。
+
+domain/modelパッケージは、ドメインオブジェクトを管理する。殆どの構造体をValue Objectとして実装し、初期化関数を用意している。
+
 # Text User Interfaceの概要
 
 `github.com/rivo/tview`のライブラリを用いて、TUIを提供している。TUIは、以下のコンポーネントで構成されている。
@@ -62,8 +68,19 @@
 | Ctrl + x	|選択したテキストをカット |
 | Ctrl + s	|結果をファイルに保存 |
 | Ctrl + t	|テーマを変更 |
+| /       |サイドバーでテーブル名を検索（サイドバーにフォーカスがある場合）|
+| ESC       |サイドバーでテーブル名検索をクリア（サイドバーにフォーカスがある場合） |
+| Space     | テーブルのカラム一覧を表示／非表示（サイドバーにフォーカスがある場合） |
+| Enter     | テーブルのDDL情報を表示（サイドバーにフォーカスがある場合） |
 | F1        |サイドバーにフォーカス |
 | F2        |クエリ入力エリアにフォーカス |
 | F3        |クエリ結果テーブルにフォーカス |
 | TAB	|次のフィールドに移動 |
 | Shift + TAB	|前のフィールドに移動 |
+
+# サポートしているRDBMS
+
+- MySQL
+- PostgreSQL
+- SQLite3
+- SQL Server
