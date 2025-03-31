@@ -317,6 +317,7 @@ func (t *TUI) importFiles(ctx context.Context) error {
 	tables := []*model.Table{}
 	defer func() {
 		t.home.sidebar.update(tables, "local")
+		t.home.queryTextArea.setTableNamesAndCloumnNamesCandidate(tables)
 	}()
 
 	for _, file := range t.files {
@@ -634,6 +635,7 @@ func (t *TUI) loadDatabaseTables(ctx context.Context, dbName string) {
 		return
 	}
 	t.home.sidebar.update(tables, dbName)
+	t.home.queryTextArea.setTableNamesAndCloumnNamesCandidate(tables)
 }
 
 // showHistoryList displays a list of SQL query history and allows selection
