@@ -1,7 +1,6 @@
 module github.com/nao1215/sqluv
 
 go 1.24.0
-
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/atotto/clipboard v0.1.4
@@ -21,7 +20,7 @@ require (
 	github.com/ulikunitz/xz v0.5.12
 	go.uber.org/mock v0.5.0
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.36.3
+	modernc.org/sqlite v1.37.0
 )
 
 require (
@@ -56,16 +55,16 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
+	golang.org/x/mod v0.24.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	golang.org/x/tools v0.30.0 // indirect
-	modernc.org/libc v1.61.13 // indirect
+	golang.org/x/tools v0.31.0 // indirect
+	modernc.org/libc v1.62.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.8.2 // indirect
+	modernc.org/memory v1.9.1 // indirect
 )
 
 tool (
