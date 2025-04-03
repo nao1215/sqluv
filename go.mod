@@ -1,13 +1,12 @@
 module github.com/nao1215/sqluv
 
 go 1.24.0
-
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/atotto/clipboard v0.1.4
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.12
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.79.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.79.1
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/google/go-cmp v0.7.0
