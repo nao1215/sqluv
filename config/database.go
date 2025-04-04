@@ -157,7 +157,7 @@ func NewPostgreSQLConfig(
 // The return function is the function to close the DB.
 func NewPostgreSQLDB(config PostgreSQLConfig) (PostgreSQLDB, func(), error) {
 	connStr := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		"host='%s' port='%d' user='%s' password='%s' dbname='%s' sslmode='%s'",
 		config.host,
 		config.port,
 		config.user,
