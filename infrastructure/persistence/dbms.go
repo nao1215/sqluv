@@ -45,14 +45,16 @@ var _ repository.TablesInRemoteGetter = (*tablesGetter)(nil)
 type tablesGetter struct {
 	db       *sql.DB
 	database string
+	user     string
 	dbmsType config.DBMSType
 }
 
 // NewTablesGetter returns tablesGetter
-func NewTablesGetter(db config.DBMS, database string, dbmsType config.DBMSType) repository.TablesInRemoteGetter {
+func NewTablesGetter(db config.DBMS, database, user string, dbmsType config.DBMSType) repository.TablesInRemoteGetter {
 	return &tablesGetter{
 		db:       db,
 		database: database,
+		user:     user,
 		dbmsType: dbmsType,
 	}
 }
@@ -67,8 +69,8 @@ func (g *tablesGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 		query = "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = ?"
 		rows, err = g.db.QueryContext(ctx, query, g.database)
 	case config.PostgreSQL:
-		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-		rows, err = g.db.QueryContext(ctx, query)
+		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = $1 OR table_schema = 'public'"
+		rows, err = g.db.QueryContext(ctx, query, g.user)
 	case config.SQLite3:
 		query = "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
 		rows, err = g.db.QueryContext(ctx, query)
@@ -115,8 +117,8 @@ func (g *tablesGetter) getColumns(ctx context.Context, tableName string) ([]stri
 		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = ? AND table_name = ?"
 		colRows, err = g.db.QueryContext(ctx, columnQuery, g.database, tableName)
 	case config.PostgreSQL:
-		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2"
-		colRows, err = g.db.QueryContext(ctx, columnQuery, "public", tableName)
+		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = $1 OR table_schema = 'public' AND table_name = $2"
+		colRows, err = g.db.QueryContext(ctx, columnQuery, g.user, tableName)
 	case config.SQLite3:
 		columnQuery = fmt.Sprintf("PRAGMA table_info(%s)", tableName)
 		colRows, err = g.db.QueryContext(ctx, columnQuery)
