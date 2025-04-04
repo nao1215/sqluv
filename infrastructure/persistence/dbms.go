@@ -45,15 +45,17 @@ var _ repository.TablesInRemoteGetter = (*tablesGetter)(nil)
 type tablesGetter struct {
 	db       *sql.DB
 	database string
+	user     string
 	dbmsType config.DBMSType
 }
 
 // NewTablesGetter returns tablesGetter
-func NewTablesGetter(db config.DBMS, database string, dbmsType config.DBMSType) repository.TablesInRemoteGetter {
+func NewTablesGetter(db config.DBMS, conf *config.DBConnection) repository.TablesInRemoteGetter {
 	return &tablesGetter{
 		db:       db,
-		database: database,
-		dbmsType: dbmsType,
+		database: conf.Database,
+		user:     conf.User,
+		dbmsType: conf.Type,
 	}
 }
 
@@ -67,8 +69,8 @@ func (g *tablesGetter) GetTables(ctx context.Context) ([]*model.Table, error) {
 		query = "SELECT TABLE_NAME FROM information_schema.tables WHERE table_schema = ?"
 		rows, err = g.db.QueryContext(ctx, query, g.database)
 	case config.PostgreSQL:
-		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-		rows, err = g.db.QueryContext(ctx, query)
+		query = "SELECT table_name FROM information_schema.tables WHERE table_schema = $1 OR table_schema = 'public'"
+		rows, err = g.db.QueryContext(ctx, query, g.user)
 	case config.SQLite3:
 		query = "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
 		rows, err = g.db.QueryContext(ctx, query)
@@ -115,8 +117,8 @@ func (g *tablesGetter) getColumns(ctx context.Context, tableName string) ([]stri
 		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = ? AND table_name = ?"
 		colRows, err = g.db.QueryContext(ctx, columnQuery, g.database, tableName)
 	case config.PostgreSQL:
-		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2"
-		colRows, err = g.db.QueryContext(ctx, columnQuery, "public", tableName)
+		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = $1 OR table_schema = 'public' AND table_name = $2"
+		colRows, err = g.db.QueryContext(ctx, columnQuery, g.user, tableName)
 	case config.SQLite3:
 		columnQuery = fmt.Sprintf("PRAGMA table_info(%s)", tableName)
 		colRows, err = g.db.QueryContext(ctx, columnQuery)
@@ -194,18 +196,19 @@ type ddlGetter struct {
 	db       *sql.DB
 	dbmsType config.DBMSType
 	database string
+	user     string
 }
 
 // NewTableDDLGetter returns a new TableDDLGetter.
 func NewTableDDLGetter(
 	db *sql.DB,
-	database string,
-	dbmsType config.DBMSType,
+	conf *config.DBConnection,
 ) repository.TableDDLInRemoteGetter {
 	return &ddlGetter{
 		db:       db,
-		database: database,
-		dbmsType: dbmsType,
+		database: conf.Database,
+		user:     conf.User,
+		dbmsType: conf.Type,
 	}
 }
 
@@ -228,8 +231,8 @@ func (d *ddlGetter) GetTableDDL(ctx context.Context, tableName string) ([]*model
             SELECT column_name, data_type, COALESCE(character_maximum_length, 0),
                    is_nullable, COALESCE(column_default, ''), ''
             FROM information_schema.columns
-            WHERE table_schema='public' AND table_name=$1::text`
-		rows, err = d.db.QueryContext(ctx, query, tableName)
+            WHERE table_schema='public' OR table_schema=$1 AND table_name=$2::text`
+		rows, err = d.db.QueryContext(ctx, query, d.user, tableName)
 	case config.SQLite3:
 		// PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
 		query = "PRAGMA table_info(" + tableName + ")"
