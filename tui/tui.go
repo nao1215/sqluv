@@ -164,7 +164,7 @@ func (t *TUI) handleDBConnection(conn *config.DBConnection) error {
 	// Initialize DBMS usecases
 	queryExecutor := persistence.NewQueryExecutor(db)
 	statementExecutor := persistence.NewStatementExecutor(db)
-	tablesGetter := persistence.NewTablesGetter(db, conn.Database, conn.Type)
+	tablesGetter := persistence.NewTablesGetter(db, conn.Database, conn.User, conn.Type)
 	tableDDLGetter := persistence.NewTableDDLGetter(db, conn.Database, conn.Type)
 
 	t.dbmsUsecases = &dbmsUsecases{
