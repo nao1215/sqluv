@@ -117,7 +117,7 @@ func (g *tablesGetter) getColumns(ctx context.Context, tableName string) ([]stri
 		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = ? AND table_name = ?"
 		colRows, err = g.db.QueryContext(ctx, columnQuery, g.database, tableName)
 	case config.PostgreSQL:
-		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = $1 OR table_schema = 'public' AND table_name = $2"
+		columnQuery = "SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2"
 		colRows, err = g.db.QueryContext(ctx, columnQuery, g.user, tableName)
 	case config.SQLite3:
 		columnQuery = fmt.Sprintf("PRAGMA table_info(%s)", tableName)
