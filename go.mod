@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.79.2
 	github.com/gdamore/tcell/v2 v2.8.1
-	github.com/go-sql-driver/mysql v1.9.1
+	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/wire v0.6.0
 	github.com/klauspost/compress v1.18.0
