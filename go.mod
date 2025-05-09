@@ -15,7 +15,7 @@ require (
 	github.com/klauspost/compress v1.18.0
 	github.com/lib/pq v1.10.9
 	github.com/lithammer/fuzzysearch v1.1.8
-	github.com/microsoft/go-mssqldb v1.8.0
+	github.com/microsoft/go-mssqldb v1.8.1
 	github.com/rivo/tview v0.0.0-20241227133733-17b7edb88c57
 	github.com/spf13/pflag v1.0.6
 	github.com/ulikunitz/xz v0.5.12
