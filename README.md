@@ -1,5 +1,8 @@
 ![dbms_demo](doc/image/dbms_demo.gif)
 
+[日本語](./doc/ja/README.md) | [Русский](./doc/ru/README.md) | [中文](./doc/zh-cn/README.md) | [한국어](./doc/ko/README.md) | [Español](./doc/es/README.md) | [Français](./doc/fr/README.md)
+
+
 The **sqluv (sql + love)** is a straightforward text-based user interface designed for interacting with various Relational Database Management Systems (RDBMS) as well as CSV, TSV, and LTSV files. The sqluv read CSV, TSV, and LTSV files from local storage, HTTPS, and Amazon S3. The sqluv automatically decompresses compressed files in .gz, .bz2, .xz, and .zst formats.With sqluv, executing SQL queries becomes a user-friendly experience, allowing seamless connections to databases or local files with ease.
 
 The sqluv is a command derived from [nao1215/sqly](https://github.com/nao1215/sqly). Its starting point is to provide a more user-friendly interface for writing SQL compared to sqly.
