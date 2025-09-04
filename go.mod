@@ -11,7 +11,7 @@ require (
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/go-cmp v0.7.0
-	github.com/google/wire v0.6.0
+	github.com/google/wire v0.7.0
 	github.com/klauspost/compress v1.18.0
 	github.com/lib/pq v1.10.9
 	github.com/lithammer/fuzzysearch v1.1.8
