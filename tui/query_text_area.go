@@ -1,15 +1,20 @@
 package tui
 
 import (
+	"strings"
+
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
+	"github.com/nao1215/sqluv/domain/model"
 	"github.com/rivo/tview"
 )
 
 // queryTextArea represents a query input field.
 type queryTextArea struct {
 	*tview.TextArea
-	theme *Theme
+	theme          *Theme
+	candidates     []string // SQL reserved words, table names, and column names.
+	completionList *tview.List
 }
 
 // newQueryTextArea creates a new query input field.
@@ -20,6 +25,12 @@ func newQueryTextArea(theme *Theme) *queryTextArea {
 	textArea.SetBorder(true).
 		SetTitle("Query").
 		SetTitleAlign(tview.AlignLeft)
+
+	q := &queryTextArea{
+		TextArea: textArea,
+		theme:    theme,
+	}
+	q.candidates = q.sqlCandidate()
 
 	// Add keyboard shortcut handling for copy/paste
 	textArea.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -59,15 +70,53 @@ func newQueryTextArea(theme *Theme) *queryTextArea {
 			}
 			return event // No selection, pass through
 		}
+
+		// Auto-completion: if the user presses the right arrow key, we will try to auto-complete the current word.
+		if event.Key() == tcell.KeyRight {
+			text := textArea.GetText()
+			words := strings.Fields(strings.ReplaceAll(text, "\n", " "))
+			currentWord := words[len(words)-1]
+
+			// Look for candidate completions.
+			var match string
+			for _, candidate := range q.candidates {
+				if strings.HasPrefix(strings.ToUpper(candidate), strings.ToUpper(currentWord)) {
+					match = candidate
+					break
+				}
+			}
+			// If a match is found, replace the current word with the full candidate.
+			if match != "" && match != currentWord {
+				start := len(text)
+				for i := start - 1; i >= 0; i-- {
+					if text[i] == ' ' || text[i] == '\n' || text[i] == '\t' {
+						break
+					}
+					start = i
+				}
+				textArea.SetText(text[:start]+match, true)
+				return nil
+			}
+		}
 		return event // Pass other keys through
 	})
 
-	q := &queryTextArea{
-		TextArea: textArea,
-		theme:    theme,
-	}
 	q.applyTheme(theme)
 	return q
+}
+
+func (q *queryTextArea) setTableNamesAndCloumnNamesCandidate(tables []*model.Table) {
+	q.candidates = q.sqlCandidate() // clear previous candidates
+	for _, table := range tables {
+		q.candidates = append(q.candidates, table.Name())
+		for _, col := range table.Header() {
+			q.candidates = append(q.candidates, col)
+		}
+	}
+}
+
+func (q *queryTextArea) sqlCandidate() []string {
+	return []string{"SELECT", "FROM", "WHERE", "INSERT", "UPDATE", "DELETE", "JOIN", "GROUP", "ORDER", "LIMIT", "WITH"}
 }
 
 func (q *queryTextArea) applyTheme(theme *Theme) {
